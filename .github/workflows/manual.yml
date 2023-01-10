@@ -29,5 +29,5 @@ jobs:
     - name: Print Helm v
       run: helm version
     - name: Render templates
-      working-directory: module-chart
+      working-directory: module-chart/sap-btp-operator
       run: helm template ljtest 
