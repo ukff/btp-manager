@@ -49,24 +49,24 @@ jobs:
       run: |
         git clone https://github.com/$ORG/$BTP_MANAGER_REPO.git
     - name: Create Branch
-      working-directory: kyma
+      working-directory: btp-manager
       run: |
         git checkout -B $BRANCH_NAME
     - name: Add module template
       working-directory: sap-btp-operator
       run: yes | cp -rf . $BTP_MANAGER_REPO
     - name: Commit Changes
-      working-directory: kyma
+      working-directory: btp-manager
       run: |
         git add .
         git commit -m "Update $TEMPLATE_NAME"
     - name: Push Changes
-      working-directory: kyma
+      working-directory: btp-manager
       run: |
         git remote set-url origin https://${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
     - name: Create PR if needed
-      working-directory: kyma
+      working-directory: btp-manager
       shell: bash
       run: |
         prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A ukff --state open --json headRefName | jq -r '.[] | .headRefName')
