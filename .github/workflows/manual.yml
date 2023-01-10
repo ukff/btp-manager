@@ -30,5 +30,8 @@ jobs:
     - name: Render templates
       working-directory: sap-btp-operator
       run: |
-        mkrdir module-chart
-        helm template v3 . --output-dir module-chart
+        mkdir rendered
+        helm template v3 . --output-dir rendered
+    - name: Print 
+      working-directory: sap-btp-operator/rendered
+      run: ls -l
