@@ -96,6 +96,6 @@ jobs:
             exit 0
         fi
        
-        gh pr create -B main -R https://github.com/$ORG/$BTP_MANAGER_REPO/ --title $GIT_MSG --fill
+        gh pr create -B main -R https://github.com/$ORG/$BTP_MANAGER_REPO/ --title "$GIT_MSG" --fill
       env:
         GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
