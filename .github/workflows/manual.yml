@@ -1,5 +1,11 @@
 name: Manual workflow
 
+env:
+  ORG: ukff
+  BTP_MANAGER_REPO: btp-manager
+  GIT_EMAIL: <>
+  GIT_NAME: BTP Manager
+
 on:
   workflow_dispatch:
     inputs:
@@ -34,3 +40,42 @@ jobs:
     - name: Print 
       working-directory: sap-btp-operator/rendered/sap-btp-operator/templates
       run: ls
+    
+    - name: Setup GitHub config
+      run: |
+        git config --global user.email $GIT_EMAIL
+        git config --global user.name $GIT_NAME
+    - name: Clone Kyma Repo 
+      run: |
+        git clone https://github.com/$ORG/$KYMA_REPO.git
+    - name: Create Branch
+      working-directory: kyma
+      run: |
+        git checkout -B $BRANCH_NAME
+    - name: Add module template
+      working-directory: sap-btp-operator
+      run: yes | cp -rf . $BTP_MANAGER_REPO
+    - name: Commit Changes
+      working-directory: kyma
+      run: |
+        git add .
+        git commit -m "Update $TEMPLATE_NAME"
+    - name: Push Changes
+      working-directory: kyma
+      run: |
+        git remote set-url origin https://${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
+        git push --set-upstream origin $BRANCH_NAME -f
+    - name: Create PR if needed
+      working-directory: kyma
+      shell: bash
+      run: |
+        prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A ukff --state open --json headRefName | jq -r '.[] | .headRefName')
+       
+        if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
+            echo "open pr already exists, no need to create new one, pr will be updated by push from previous step"
+            exit 0
+        fi
+       
+        gh pr create -B main -R https://github.com/$ORG/$BTP_MANAGER_REPO/ --title "Promote BTP Manager to ( $TAG )" --fill
+      env:
+        GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
