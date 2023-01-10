@@ -32,5 +32,5 @@ jobs:
       run: |
         helm template v3 . --output-dir rendered
     - name: Print 
-      working-directory: sap-btp-operator/rendered/sap-btp-operator
+      working-directory: sap-btp-operator/rendered/sap-btp-operator/templates
       run: ls
