@@ -69,6 +69,7 @@ jobs:
 
     - name: Add module template
       run: |
+        yes | cp -rf ./module-resources $BTP_MANAGER_REPO
         yes | cp -rf ./module-chart $BTP_MANAGER_REPO
 
     - name: Commit Changes
