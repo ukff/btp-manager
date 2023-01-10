@@ -15,10 +15,9 @@ jobs:
     - name: Download Chart
       run: |
         curl -L https://github.com/SAP/sap-btp-service-operator/releases/download/v0.3.3/sap-btp-operator-v0.3.3.tgz > charts.tgz
-        mkdir module-chart
-        tar zxvf charts.tgz -C module-chart
+        tar zxvf charts.tgz 
     - name: Print
-      working-directory: module-chart
+      working-directory: sap-btp-operator
       run: |
         ls -l
     - name: Install Helm
@@ -29,5 +28,7 @@ jobs:
     - name: Print Helm v
       run: helm version
     - name: Render templates
-      working-directory: module-chart
-      run: helm template v3 ./sap-btp-operator
+      working-directory: sap-btp-operator
+      run: |
+        mkrdir module-chart
+        helm template v3 . --output-dir module-chart
