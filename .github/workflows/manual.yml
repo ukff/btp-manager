@@ -65,7 +65,7 @@ jobs:
     - name: Create Branch
       working-directory: btp-manager
       run: |
-        git checkout -B chart
+        git checkout -B $BRANCH_NAME
 
     - name: Add module template
       run: |
