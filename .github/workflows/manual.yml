@@ -51,7 +51,7 @@ jobs:
       run: ls
     - name: P
       run: |
-        mv module-chart/rendered/sap-btp-operator/ ./
+        mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
         rm -r module-chart/rendered/
     - name: Setup GitHub config
       run: |
