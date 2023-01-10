@@ -55,7 +55,7 @@ jobs:
     - name: Add module template
       working-directory: sap-btp-operator
       run: |
-        mkdir module-chart
+        mkdir $BTP_MANAGER_REPO/module-chart
         yes | cp -rf . $BTP_MANAGER_REPO/module-chart
     - name: Commit Changes
       working-directory: btp-manager
