@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Download Chart
       run: |
-        curl https://github.com/SAP/sap-btp-service-operator/releases/download/v0.3.3/sap-btp-operator-v0.3.3.tgz >> charts.tgz
+        curl -L https://github.com/SAP/sap-btp-service-operator/releases/download/v0.3.3/sap-btp-operator-v0.3.3.tgz > charts.tgz
         tar zxvf charts.tgz -C module-chart
     - name: Print
       working-directory: module-chart
