@@ -1,0 +1,15 @@
+---
+# Source: sap-btp-operator/templates/cert-manager-certificate.yml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sap-btp-operator-serving-cert
+  namespace: default
+spec:
+  dnsNames:
+    - sap-btp-operator-webhook-service.default.svc
+    - sap-btp-operator-webhook-service.default.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: sap-btp-operator-selfsigned-issuer
+  secretName: webhook-server-cert
