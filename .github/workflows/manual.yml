@@ -77,7 +77,7 @@ jobs:
       working-directory: btp-manager
       run: |
         git add .
-        git commit -m $GIT_MSG
+        git commit -m "$GIT_MSG"
 
     - name: Push Changes
       working-directory: btp-manager
