@@ -31,7 +31,7 @@ jobs:
       working-directory: sap-btp-operator
       run: |
         mkdir rendered
-        helm template v3 . --output-dir rendered
+        helm template v3 . --output-dir /rendered
     - name: Print 
       working-directory: sap-btp-operator/rendered
-      run: echo ls -l
+      run: ls
