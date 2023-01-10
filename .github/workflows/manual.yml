@@ -53,9 +53,8 @@ jobs:
       run: |
         git checkout -B chart
     - name: Add module template
-      working-directory: sap-btp-operator
       run: |
-        yes | cp -rf . $BTP_MANAGER_REPO
+        yes | cp -rf ./sap-btp-operator $BTP_MANAGER_REPO
     - name: Commit Changes
       working-directory: btp-manager
       run: |
