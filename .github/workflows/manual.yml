@@ -5,7 +5,7 @@ env:
   BTP_MANAGER_REPO: btp-manager
   GIT_EMAIL: <>
   GIT_NAME: BTP Manager
-
+  BRANCH_NAME: chart
 on:
   workflow_dispatch:
     inputs:
