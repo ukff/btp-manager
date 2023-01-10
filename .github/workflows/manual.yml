@@ -12,6 +12,14 @@ jobs:
   greet:
     runs-on: ubuntu-latest
     steps:
+    - name: Download Chart
+      run: |
+        curl https://github.com/SAP/sap-btp-service-operator/releases/download/v0.3.3/sap-btp-operator-v0.3.3.tgz > charts.tgz
+        tar zxvf charts.tgz -C module-chart
+    - name: Print
+      working-directory: module-chart
+      run: |
+        ls -l
     - name: Install Helm
       run: | 
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -19,3 +27,6 @@ jobs:
         ./get_helm.sh
     - name: Print Helm v
       run: helm version
+    - name: Render templates
+      working-directory: module-chart
+      run: helm template ljtest 
