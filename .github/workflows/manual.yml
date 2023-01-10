@@ -30,4 +30,4 @@ jobs:
       run: helm version
     - name: Render templates
       working-directory: module-chart
-      run: helm template v3 /sap-btp-operator
+      run: helm template v3 ./sap-btp-operator
