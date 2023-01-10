@@ -31,30 +31,28 @@ jobs:
     - name: Set branch name
       run: |
         echo "BRANCH_NAME=chart-$TAG" >> $GITHUB_ENV
-        echo "GIT_MSG=Update charts to $TAG" >> $GITHUB_ENV
+        echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
     - name: Download Chart
       run: |
         curl -L https://github.com/SAP/sap-btp-service-operator/releases/download/v0.3.3/sap-btp-operator-v0.3.3.tgz > charts.tgz
         tar zxvf charts.tgz 
-    - name: Print
-      working-directory: sap-btp-operator
-      run: |
-        ls -l
+        mv sap-btp-operator module-chart
     - name: Install Helm
       run: | 
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh
-    - name: Print Helm v
-      run: helm version
     - name: Render templates
-      working-directory: sap-btp-operator
+      working-directory: module-chart
       run: |
         helm template v3 . --output-dir rendered
     - name: Print 
-      working-directory: sap-btp-operator/rendered/sap-btp-operator/templates
+      working-directory: module-chart/rendered/module-chart/templates
       run: ls
-    
+    - name: P
+      run: |
+        mv module-chart/rendered/module-chart/ ./
+        rm -r module-chart/rendered/
     - name: Setup GitHub config
       run: |
         git config --global user.email $GIT_EMAIL
@@ -71,7 +69,7 @@ jobs:
 
     - name: Add module template
       run: |
-        yes | cp -rf ./sap-btp-operator $BTP_MANAGER_REPO
+        yes | cp -rf ./module-chart $BTP_MANAGER_REPO
 
     - name: Commit Changes
       working-directory: btp-manager
