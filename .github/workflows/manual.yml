@@ -7,7 +7,7 @@ env:
   GIT_NAME: BTP Manager
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   greet:
@@ -68,7 +68,7 @@ jobs:
         echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
         
     - name: Create Branch
-      working-directory: $BTP_MANAGER_REPO
+      working-directory: btp-manager
       run: |
         git checkout -B $BRANCH_NAME
 
@@ -78,19 +78,19 @@ jobs:
         yes | cp -rf ./module-chart $BTP_MANAGER_REPO
 
     - name: Commit Changes
-      working-directory: $BTP_MANAGER_REPO
+      working-directory: btp-manager
       run: |
         git add .
         git commit -m "$GIT_MSG"
 
     - name: Push Changes
-      working-directory: $BTP_MANAGER_REPO
+      working-directory: btp-manager
       run: |
         git remote set-url origin https://${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
-      working-directory: $BTP_MANAGER_REPO
+      working-directory: btp-manager
       shell: bash
       run: |
         prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A ukff --state open --json headRefName | jq -r '.[] | .headRefName')
