@@ -41,8 +41,8 @@ jobs:
     - name: Check if charts changed
       shell: bash
       run: |
-        latest_sha = $(find ./module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
-        current_sha = $(find ./BTP_MANAGER_REPO/module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
+        latest_sha=$(find ./module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
+        current_sha=$(find ./BTP_MANAGER_REPO/module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
 
         echo $latest_sha
         echo $current_sha
