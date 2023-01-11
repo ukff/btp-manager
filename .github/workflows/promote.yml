@@ -2,7 +2,7 @@
 name: Promote to channel
 
 env:
-  ORG: kyma-project
+  ORG: ukff
   BTP_MANAGER_REPO: btp-manager
   KYMA_REPO: kyma
   TEMPLATE_NAME: moduletemplate-btp.yaml
