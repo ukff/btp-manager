@@ -62,6 +62,9 @@ jobs:
       working-directory: module-chart
       run: |
         helm template v3 . --output-dir rendered
+
+    - name: Clean directories
+      run: |
         mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
         rm -r module-chart/rendered/
 
