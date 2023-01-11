@@ -93,7 +93,7 @@ jobs:
     - name: Push Changes
       working-directory: kyma
       run: |
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$ORG/$KYMA_REPO.git
+        git remote add origin git@github.com:kyma-project/kyma.git
         git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
