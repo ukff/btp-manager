@@ -1,4 +1,4 @@
-name: Manual workflow
+name: Auto bump chart
 
 env:
   ORG: ukff
@@ -10,8 +10,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  greet:
+  auto-bump-chart:
     runs-on: ubuntu-latest
+   
     steps:
 
     - name: Get tag for latest version
