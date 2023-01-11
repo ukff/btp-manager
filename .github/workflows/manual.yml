@@ -32,27 +32,29 @@ jobs:
       run: |
         echo "BRANCH_NAME=chart-$TAG" >> $GITHUB_ENV
         echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
+        
     - name: Download Chart
       run: |
         curl -L https://github.com/SAP/sap-btp-service-operator/releases/download/v0.3.3/sap-btp-operator-v0.3.3.tgz > charts.tgz
         tar zxvf charts.tgz 
         mv sap-btp-operator module-chart
+
     - name: Install Helm
       run: | 
         curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
         chmod 700 get_helm.sh
         ./get_helm.sh
+
     - name: Render templates
       working-directory: module-chart
       run: |
         helm template v3 . --output-dir rendered
-    - name: Print 
-      working-directory: module-chart/rendered/sap-btp-operator/templates
-      run: ls
+
     - name: P
       run: |
         mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
         rm -r module-chart/rendered/
+
     - name: Setup GitHub config
       run: |
         git config --global user.email $GIT_EMAIL
