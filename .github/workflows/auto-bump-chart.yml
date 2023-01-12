@@ -62,6 +62,12 @@ jobs:
         mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
         rm -r module-chart/rendered/
 
+    - name: Apply overrides
+      run: |
+        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+        chmod +x /usr/bin/yq
+        yq version
+
     - name: Set Git info
       run: |
         git config --global user.email $GIT_EMAIL
