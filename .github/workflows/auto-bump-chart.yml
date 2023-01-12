@@ -64,8 +64,9 @@ jobs:
 
     - name: Apply overrides
       run: |
+        curl -O -J https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-        yq version
+        yq '.manager' module-chart/values.yaml
 
     - name: Set Git info
       run: |
