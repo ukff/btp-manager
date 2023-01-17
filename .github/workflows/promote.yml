@@ -65,8 +65,13 @@ jobs:
       run: echo "BRANCH_NAME=$BTP_MANAGER_REPO-$TAG" >> $GITHUB_ENV
 
     - name: Download module template 
-      run: curl -O -J https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
-
+      run: |
+          gh api \
+            -H "Accept: application/vnd.github+json" \
+            https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/${{ env.TEMPLATE_NAME }} >> ${{ env.TEMPLATE_NAME }}
+      env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
     - name: Setup GitHub config
       run: |
         git config --global user.email $GIT_EMAIL
