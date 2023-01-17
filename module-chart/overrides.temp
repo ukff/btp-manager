@@ -1,0 +1,5 @@
+manager:
+  req_cpu_limit: 23m
+  replica_count: "3"
+  enable_leader_election: "true"
+  image: cos

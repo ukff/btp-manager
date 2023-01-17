@@ -1,0 +1,5 @@
+manager:
+  req_cpu_limit: 23mm
+  replica_count: a911a
+  enable_leader_election: false
+  image: cos 
