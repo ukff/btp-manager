@@ -85,21 +85,21 @@ jobs:
         do
             get_key_from_line $line
             echo $key
-            v=$(yq "$key" values.yaml)
+            v=$(yq "$key" ./module-resources/values.yaml)
             echo $v
             if [[ "$v" == "null" ]]; then
                 $(yq -i "del($key)" file_0.yml)
                 continue
             fi 
 
-            t=$(yq "$key | tag" values.yaml)
+            t=$(yq "$key | tag" ./module-resources/values.yaml)
             echo $t
             if [[ "$t" == "!!map" ]]; then
                 $(yq -i "del($key)" file_0.yml)
             fi
         done
 
-        $(yq -i '. *= load("file_0.yml")' values.yaml)
+        $(yq -i '. *= load("file_0.yml")' ./module-resources/values.yaml)
 
         yq file_1.yml --input-format props -o props | \
         while read line
