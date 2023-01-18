@@ -87,15 +87,11 @@ jobs:
     - name: Add module template
       run: yes | cp -rf $TEMPLATE_NAME $KYMA_REPO/modules/${{ inputs.channel }}
 
-    - name: Commit Changes
-      working-directory: kyma
-      run: |
-        git add .
-        git commit -m "Update $TEMPLATE_NAME"
-
     - uses: actions/checkout@v3
     - shell: bash
       run: |
+        git add .
+        git commit -m "Update $TEMPLATE_NAME"
         git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
