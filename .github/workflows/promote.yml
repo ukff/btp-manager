@@ -74,8 +74,10 @@ jobs:
 
     - name: Clone Kyma Repo 
       run: |
-        git clone https://github.com/$ORG/$KYMA_REPO.git
-
+        gh repo clone $ORG/$KYMA_REPO
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Create Branch
       working-directory: kyma
       run: |
