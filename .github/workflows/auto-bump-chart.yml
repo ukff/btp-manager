@@ -69,8 +69,7 @@ jobs:
       run: |
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
         curl -J -O 
-        NA="not in target:\n"
-        NF="structure changed:\n"
+
         yq overrides.yaml -o props | \
         while read line
         do
@@ -78,8 +77,6 @@ jobs:
             key=".${ADDR[0]}"
             v=$(yq "$key" values.yaml)
             if [[ "$v" == "null" ]]; then
-                echo $key
-                NF+=" ${key}"
                 $(yq -i "del($key)" overrides.yaml)
                 continue
             fi 
@@ -87,14 +84,9 @@ jobs:
             t=$(yq "$key | tag" values.yaml)
             echo $t
             if [[ "$t" == "!!map" ]]; then
-                echo $key
-                NA+=" ${key}"
                 $(yq -i "del($key)" overrides.yaml)
             fi
         done
-
-        echo "${NA}"
-        echo "${NF}"
 
         $(yq -i '. *= load("overrides.yaml")' values.yaml)
 
