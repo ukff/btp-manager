@@ -2,6 +2,8 @@ name: Auto bump chart
 
 env:
   ORG: ukff
+  SAP: SAP
+  BTP_OPERATOR_REPO: sap-btp-service-operator
   BTP_MANAGER_REPO: btp-manager
   GIT_EMAIL: <>
   GIT_NAME: BTP Manager
@@ -22,12 +24,12 @@ jobs:
         latest=$(curl \
                   -H "Accept: application/vnd.github+json" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
-                  https://api.github.com/repos/SAP/sap-btp-service-operator/releases/latest | jq -r '.tag_name') 
+                  https://api.github.com/repos/$SAP/$BTP_OPERATOR_REPO/releases/latest | jq -r '.tag_name') 
         echo "TAG=${latest}" >> $GITHUB_ENV
 
     - name: Download Chart
       run: |
-        curl -L https://github.com/SAP/sap-btp-service-operator/releases/download/$TAG/sap-btp-operator-$TAG.tgz > charts.tgz
+        curl -L https://github.com/$SAP/$BTP_OPERATOR_REPO/releases/download/$TAG/sap-btp-operator-$TAG.tgz > charts.tgz
         tar zxvf charts.tgz 
         mv sap-btp-operator module-chart
 
@@ -66,30 +68,35 @@ jobs:
       shell: bash
       run: |
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-        na=""
-        nf=""
+        curl -J -O 
+        NA="not in target:\n"
+        NF="structure changed:\n"
         yq overrides.yaml -o props | \
         while read line
         do
-            IFS='=' read -ra prop <<< "$line"
-            key=".${prop[0]}"
-            echo $key
+            IFS='=' read -ra ADDR <<< "$line"
+            key=".${ADDR[0]}"
             v=$(yq "$key" values.yaml)
-            if [[ "$v" == "" ]]; then
-                nf="$na $key"
-                $(yq "del($key)" overrides.yaml)
+            if [[ "$v" == "null" ]]; then
+                echo $key
+                NF+=" ${key}"
+                $(yq -i "del($key)" overrides.yaml)
                 continue
             fi 
 
             t=$(yq "$key | tag" values.yaml)
             echo $t
             if [[ "$t" == "!!map" ]]; then
-                na="$na $key"
-                d=$(yq "del($key)" overrides.yaml)
+                echo $key
+                NA+=" ${key}"
+                $(yq -i "del($key)" overrides.yaml)
             fi
         done
 
-        m=$(yq -i '. *= load("overrides.yaml")' values.yaml)
+        echo "${NA}"
+        echo "${NF}"
+
+        $(yq -i '. *= load("overrides.yaml")' values.yaml)
 
     - name: Set Git info
       run: |
