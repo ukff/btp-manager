@@ -25,7 +25,8 @@ on:
         - fast
         - regular
         required: true
-
+permissions:
+  contents: write
 jobs:
   promote:
     runs-on: ubuntu-latest
