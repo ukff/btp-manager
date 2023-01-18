@@ -93,8 +93,8 @@ jobs:
         git add .
         git commit -m "Update $TEMPLATE_NAME"
 
-    - name: Push Changes
-      working-directory: kyma
+    - uses: actions/checkout@v3
+    - shell: bash
       run: |
         git push --set-upstream origin $BRANCH_NAME -f
 
