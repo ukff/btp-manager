@@ -77,7 +77,7 @@ jobs:
         git clone https://github.com/$ORG/$KYMA_REPO.git
 
     - name: Create Branch
-      working-directory: kyma
+      working-directory: $KYMA_REPO
       run: |
         git checkout -B $BRANCH_NAME
 
@@ -85,19 +85,19 @@ jobs:
       run: yes | cp -rf $TEMPLATE_NAME $KYMA_REPO/modules/${{ inputs.channel }}
 
     - name: Commit Changes
-      working-directory: kyma
+      working-directory: $KYMA_REPO
       run: |
         git add .
         git commit -m "Update $TEMPLATE_NAME"
 
     - name: Push Changes
-      working-directory: kyma
+      working-directory: $KYMA_REPO
       run: |
-        git remote set-url origin https://${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$KYMA_REPO.git
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$ORG/$KYMA_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
-      working-directory: kyma
+      working-directory: $KYMA_REPO
       shell: bash
       run: |
         prs=$(gh pr list -R https://github.com/$ORG/$KYMA_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
@@ -109,4 +109,4 @@ jobs:
        
         gh pr create -B main -R https://github.com/$ORG/$KYMA_REPO/ --title "Promote BTP Manager to ( $TAG )" --fill
       env:
-        GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
