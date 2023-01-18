@@ -71,7 +71,7 @@ jobs:
       with:
         repository: ukff/kyma
         path: kyma
-        
+
     - name: Download module template 
       run: |
        curl -O -J -L https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
@@ -91,8 +91,11 @@ jobs:
         git push --set-upstream origin $BRANCH_NAME -f
       
     - name: Create PR if needed
-      working-directory: kyma
-      shell: bash
+      uses: actions/checkout@v3
+      with:
+        repository: ukff/kyma
+        path: kyma
+    - shell: bash
       run: |
         prs=$(gh pr list -R https://github.com/$ORG/$KYMA_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
        
