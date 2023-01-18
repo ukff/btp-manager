@@ -96,7 +96,7 @@ jobs:
     - name: Push Changes
       working-directory: kyma
       run: |
-        git push
+        git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
       working-directory: kyma
