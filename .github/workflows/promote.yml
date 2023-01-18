@@ -77,9 +77,10 @@ jobs:
         path: kyma
     - shell: bash
       run: |
+        echo ls -l
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
-        yes | cp -rf ../$TEMPLATE_NAME modules/${{ inputs.channel }}
+        yes | cp -rf $TEMPLATE_NAME modules/${{ inputs.channel }}
         git checkout -B $BRANCH_NAME
         git add .
         git commit -m "Update $TEMPLATE_NAME"
