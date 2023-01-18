@@ -71,14 +71,10 @@ jobs:
       run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
-        git config --global --add push.default current
-        git config --global --add push.autoSetupRemote true
 
     - name: Clone Kyma Repo 
       run: |
-        gh repo clone $ORG/$KYMA_REPO
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git clone https://github.com/$ORG/$KYMA_REPO.git
 
     - name: Create Branch
       working-directory: kyma
@@ -97,8 +93,9 @@ jobs:
     - name: Push Changes
       working-directory: kyma
       run: |
-        git push  
-          
+        git remote set-url origin https://github-actions[bot]@github.com/$ORG/$KYMA_REPO.git
+        git push --set-upstream origin $BRANCH_NAME -f
+
     - name: Create PR if needed
       working-directory: kyma
       shell: bash
