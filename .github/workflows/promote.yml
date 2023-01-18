@@ -33,6 +33,8 @@ jobs:
 
     steps:
 
+    - uses: actions/checkout@v3
+
     - name: Use default (latest) Release Tag
       if: inputs.releaseTag == 'use latest available release' 
       shell: bash
