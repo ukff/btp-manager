@@ -29,6 +29,7 @@ permissions:
   contents: write
 jobs:
   promote:
+    permissions: write-all
     runs-on: ubuntu-latest
 
     steps:
