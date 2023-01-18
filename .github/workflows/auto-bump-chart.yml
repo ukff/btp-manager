@@ -106,7 +106,7 @@ jobs:
         do
             get_key_from_line $line
             echo $key
-            $(yq -i "del($key)" values.yaml)
+            $(yq -i "del($key)" module-resources/values.yaml)
         done 
 
     - name: Set Git info
