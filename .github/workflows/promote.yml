@@ -89,14 +89,7 @@ jobs:
         git add .
         git commit -m "Update $TEMPLATE_NAME"
         git push --set-upstream origin $BRANCH_NAME -f
-      
-    - name: Create PR if needed
-      uses: actions/checkout@v3
-      with:
-        repository: ukff/kyma
-        path: kyma
-    - shell: bash
-      run: |
+    
         prs=$(gh pr list -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
        
         if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
