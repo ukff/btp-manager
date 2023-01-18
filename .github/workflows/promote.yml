@@ -98,6 +98,6 @@ jobs:
         fi
        
         echo "cbrp"
-        gh pr create -B main --title "Promote BTP Manager to ( $TAG )" --fill
+        gh pr create -B main --title "Promote BTP Manager"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
