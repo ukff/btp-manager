@@ -71,6 +71,8 @@ jobs:
       run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
+        git config --global --add push.default current
+        git config --global --add push.autoSetupRemote true
 
     - name: Clone Kyma Repo 
       run: |
@@ -95,8 +97,8 @@ jobs:
     - name: Push Changes
       working-directory: kyma
       run: |
-        git push
-
+        git push  
+          
     - name: Create PR if needed
       working-directory: kyma
       shell: bash
