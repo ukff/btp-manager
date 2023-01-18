@@ -6,4 +6,5 @@ manager:
     certManager: true
 
 ---
-manager.rbaxProxy = ""
+manager.rbacProxy =  ~
+manager.image.sha =  ~
