@@ -43,6 +43,9 @@ jobs:
         latest_sha=$(find ./module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
         current_sha=$(find $BTP_MANAGER_REPO/module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
 
+        echo $latest_sha
+        echo $current_sha
+
         if [[ "$latest_sha" == "$current_sha" ]]; then
           echo Files are the same. No need to make bump of charts.
           exit 0
@@ -68,7 +71,7 @@ jobs:
       shell: bash
       run: |
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-        curl -J -O -L
+        curl -J -O -L https://github.com/ukff/btp-manager/blob/charts-handling/public-overrides.yaml 
 
         get_key_from_line() {
             IFS='=' read -ra arr <<< $1
