@@ -5,7 +5,7 @@ env:
   BTP_MANAGER_REPO: btp-manager
   GIT_EMAIL: <>
   GIT_NAME: BTP Manager
-  USERNAME: ukff
+  USERNAME: github-actions
 
 on:
   workflow_dispatch:
@@ -63,9 +63,33 @@ jobs:
         rm -r module-chart/rendered/
 
     - name: Apply overrides
+      shell: bash
       run: |
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-        yq '.manager' module-chart/values.yaml
+        na=""
+        nf=""
+        yq overrides.yaml -o props | \
+        while read line
+        do
+            IFS='=' read -ra prop <<< "$line"
+            key=".${prop[0]}"
+            echo $key
+            v=$(yq "$key" values.yaml)
+            if [[ "$v" == "" ]]; then
+                nf="$na $key"
+                $(yq "del($key)" overrides.yaml)
+                continue
+            fi 
+
+            t=$(yq "$key | tag" values.yaml)
+            echo $t
+            if [[ "$t" == "!!map" ]]; then
+                na="$na $key"
+                d=$(yq "del($key)" overrides.yaml)
+            fi
+        done
+
+        m=$(yq -i '. *= load("overrides.yaml")' values.yaml)
 
     - name: Set Git info
       run: |
