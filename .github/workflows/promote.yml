@@ -70,30 +70,19 @@ jobs:
     - name: Download module template 
       run: curl -O -J -L https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
           
-    - name: Setup GitHub config
+    - uses: actions/checkout@v3
+      with:
+        repository: https://github.com/$ORG/$KYMA_REPO.git
+    - shell: bash
       run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
-
-    - name: Clone Kyma Repo 
-      run: |
-        git clone https://github.com/$ORG/$KYMA_REPO.git
-
-    - name: Create Branch
-      working-directory: kyma
-      run: |
         git checkout -B $BRANCH_NAME
-
-    - name: Add module template
-      run: yes | cp -rf $TEMPLATE_NAME $KYMA_REPO/modules/${{ inputs.channel }}
-
-    - uses: actions/checkout@v3
-    - shell: bash
-      run: |
+        yes | cp -rf $TEMPLATE_NAME $KYMA_REPO/modules/${{ inputs.channel }}
         git add .
         git commit -m "Update $TEMPLATE_NAME"
         git push --set-upstream origin $BRANCH_NAME -f
-
+      
     - name: Create PR if needed
       working-directory: kyma
       shell: bash
