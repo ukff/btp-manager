@@ -57,16 +57,6 @@ jobs:
         chmod 700 get_helm.sh
         ./get_helm.sh
 
-    - name: Make templates
-      working-directory: module-chart
-      run: |
-        helm template $TAG . --output-dir rendered
-
-    - name: Clean directories
-      run: |
-        mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
-        rm -r module-chart/rendered/
-
     - name: Apply overrides
       shell: bash
       run: |
@@ -85,29 +75,39 @@ jobs:
         do
             get_key_from_line $line
             echo $key
-            v=$(yq "$key" module-resources/values.yaml)
+            v=$(yq "$key" module-chart/values.yaml)
             echo $v
             if [[ "$v" == "null" ]]; then
                 $(yq -i "del($key)" file_0.yml)
                 continue
             fi 
 
-            t=$(yq "$key | tag" module-resources/values.yaml)
+            t=$(yq "$key | tag" module-chart/values.yaml)
             echo $t
             if [[ "$t" == "!!map" ]]; then
                 $(yq -i "del($key)" file_0.yml)
             fi
         done
 
-        $(yq -i '. *= load("file_0.yml")' module-resources/values.yaml)
+        $(yq -i '. *= load("file_0.yml")' module-chart/values.yaml)
 
         yq file_1.yml --input-format props -o props | \
         while read line
         do
             get_key_from_line $line
             echo $key
-            $(yq -i "del($key)" module-resources/values.yaml)
+            $(yq -i "del($key)" module-chart/values.yaml)
         done 
+
+    - name: Make templates
+      working-directory: module-chart
+      run: |
+        helm template $TAG . --output-dir rendered
+
+    - name: Clean directories
+      run: |
+        mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
+        rm -r module-chart/rendered/
 
     - name: Set Git info
       run: |
