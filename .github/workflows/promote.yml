@@ -96,7 +96,9 @@ jobs:
       working-directory: kyma
       run: |
         git push --set-upstream origin $BRANCH_NAME -f
-
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
     - name: Create PR if needed
       working-directory: kyma
       shell: bash
