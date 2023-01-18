@@ -67,8 +67,15 @@ jobs:
     - name: Set branch name
       run: echo "BRANCH_NAME=$BTP_MANAGER_REPO-$TAG" >> $GITHUB_ENV
 
+    - uses: actions/checkout@v3
+      with:
+        repository: ukff/kyma
+        path: kyma
+        
     - name: Download module template 
-      run: curl -O -J -L https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
+      run: |
+       curl -O -J -L https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
+       yes | cp -rf $TEMPLATE_NAME $KYMA_REPO/modules/${{ inputs.channel }}
           
     - uses: actions/checkout@v3
       with:
@@ -79,7 +86,6 @@ jobs:
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
         git checkout -B $BRANCH_NAME
-        yes | cp -rf $TEMPLATE_NAME $KYMA_REPO/modules/${{ inputs.channel }}
         git add .
         git commit -m "Update $TEMPLATE_NAME"
         git push --set-upstream origin $BRANCH_NAME -f
