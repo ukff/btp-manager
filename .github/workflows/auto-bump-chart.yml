@@ -71,7 +71,7 @@ jobs:
       shell: bash
       run: |
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-        curl -J -O -L https://github.com/ukff/btp-manager/blob/charts-handling/public-overrides.yaml 
+        curl -J -O -L https://raw.githubusercontent.com/ukff/btp-manager/charts-handling/public-overrides.yaml
 
         get_key_from_line() {
             IFS='=' read -ra arr <<< $1
