@@ -99,6 +99,6 @@ jobs:
         fi
        
         echo "cbrp"
-        gh pr create -B main -R https://github.com/$ORG/$KYMA_REPO/ main --title "Promote BTP Manager" --body "xx"
+        gh pr create -B main -R https://github.com/$ORG/$KYMA_REPO/ --title "Promote BTP Manager" --body "xx"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
