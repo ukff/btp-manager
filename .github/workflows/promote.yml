@@ -97,13 +97,13 @@ jobs:
         path: kyma
     - shell: bash
       run: |
-        prs=$(gh pr list -R https://github.com/$ORG/$KYMA_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
+        prs=$(gh pr list -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
        
         if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
             echo "opened pr already exists, no need to create new one, pr will be updated by push from previous step"
             exit 0
         fi
        
-        gh pr create -B main -R https://github.com/$ORG/$KYMA_REPO/ --title "Promote BTP Manager to ( $TAG )" --fill
+        gh pr create -B main --title "Promote BTP Manager to ( $TAG )" --fill
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
