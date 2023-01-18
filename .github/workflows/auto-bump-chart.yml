@@ -68,27 +68,43 @@ jobs:
       shell: bash
       run: |
         wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
-        curl -J -O 
+        curl -J -O -L
 
-        yq overrides.yaml -o props | \
+        get_key_from_line() {
+            IFS='=' read -ra arr <<< $1
+            key=".${arr[0]}"
+        }
+
+        yq -s '"file_" + $index' public-overrides.yaml
+
+        yq file_0.yml --input-format yaml -o props | \
         while read line
         do
-            IFS='=' read -ra ADDR <<< "$line"
-            key=".${ADDR[0]}"
+            get_key_from_line $line
+            echo $key
             v=$(yq "$key" values.yaml)
+            echo $v
             if [[ "$v" == "null" ]]; then
-                $(yq -i "del($key)" overrides.yaml)
+                $(yq -i "del($key)" file_0.yml)
                 continue
             fi 
 
             t=$(yq "$key | tag" values.yaml)
             echo $t
             if [[ "$t" == "!!map" ]]; then
-                $(yq -i "del($key)" overrides.yaml)
+                $(yq -i "del($key)" file_0.yml)
             fi
         done
 
-        $(yq -i '. *= load("overrides.yaml")' values.yaml)
+        $(yq -i '. *= load("file_0.yml")' values.yaml)
+
+        yq file_1.yml --input-format props -o props | \
+        while read line
+        do
+            get_key_from_line $line
+            echo $key
+            $(yq -i "del($key)" values.yaml)
+        done 
 
     - name: Set Git info
       run: |

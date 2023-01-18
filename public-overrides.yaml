@@ -4,7 +4,6 @@ manager:
   enable_leader_election: false
   certificates:
     certManager: true
-  rbacProxy: ~
 
 ---
 manager.rbaxProxy = ""
