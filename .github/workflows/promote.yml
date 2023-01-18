@@ -77,7 +77,7 @@ jobs:
         gh repo clone $ORG/$KYMA_REPO
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Create Branch
       working-directory: kyma
       run: |
@@ -95,7 +95,6 @@ jobs:
     - name: Push Changes
       working-directory: kyma
       run: |
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$ORG/$KYMA_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
