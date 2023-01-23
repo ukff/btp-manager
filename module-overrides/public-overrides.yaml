@@ -1,7 +1,7 @@
 manager:
-  req_cpu_limit: 10m
-  replica_count: 1
-  enable_leader_election: false
+  req_cpu_limit: 9m
+  replica_count: 9
+  enable_leader_election: true
   certificates:
     certManager: true
 
