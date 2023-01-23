@@ -73,6 +73,7 @@ jobs:
       working-directory: btp-manager
       shell: bash
       run: |
+        echo ls -l
         BRANCH_NAME="chart-$TAG"
         GIT_MSG="Auto-update charts to $TAG"
 
