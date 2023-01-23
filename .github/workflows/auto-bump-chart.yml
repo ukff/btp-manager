@@ -7,7 +7,7 @@ env:
   BTP_MANAGER_REPO: btp-manager
   GIT_EMAIL: <>
   GIT_NAME: BTP Manager
-  USERNAME: github-actions
+  USERNAME: ukff
 
 on:
   workflow_dispatch:
@@ -103,7 +103,7 @@ jobs:
       run: |
         prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
         echo $prs
-        
+
         if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
             echo "open pr already exists, no need to create new one, pr will be updated by push from previous step"
             exit 0
