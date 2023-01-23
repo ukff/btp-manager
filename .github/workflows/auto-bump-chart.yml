@@ -91,16 +91,9 @@ jobs:
         git add .
         git commit -m "$GIT_MSG"
 
-    - name: Push Changes
-      working-directory: btp-manager
-      run: |
         git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
-    - name: Create PR if needed
-      working-directory: btp-manager
-      shell: bash
-      run: |
         prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
         echo $prs
 
