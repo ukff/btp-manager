@@ -94,7 +94,7 @@ jobs:
     - name: Push Changes
       working-directory: btp-manager
       run: |
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
+        git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
     - name: Create PR if needed
@@ -110,4 +110,4 @@ jobs:
        
         gh pr create -B main -R https://github.com/$ORG/$BTP_MANAGER_REPO/ --title "$GIT_MSG" --fill
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
