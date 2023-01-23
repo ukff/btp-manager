@@ -36,7 +36,8 @@ jobs:
     - name: Clone Kyma Repo 
       run: |
         git clone https://github.com/$ORG/$BTP_MANAGER_REPO.git
-
+        git checkout charts-handling
+        
     - name: Check if charts changed
       shell: bash
       run: |
