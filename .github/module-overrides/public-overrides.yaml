@@ -1,6 +1,0 @@
-manager:
-  req_cpu_limit: 99
-  replica_count: 3
-  enable_leader_election: true
-  certificates:
-    certManager: true
