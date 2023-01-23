@@ -65,7 +65,7 @@ jobs:
     - name: Make templates
       working-directory: module-chart
       run: |
-        helm template $TAG . --output-dir rendered --values ../module-overrides/public-overrides.yaml
+        helm template $TAG . --output-dir rendered --values ../$BTP_MANAGER_REPO/module-overrides/public-overrides.yaml
         mv rendered/sap-btp-operator/templates/ ./module-resources
         rm -r rendered/
         
