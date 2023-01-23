@@ -37,11 +37,6 @@ jobs:
       run: |
         git clone https://github.com/$ORG/$BTP_MANAGER_REPO.git
 
-    - name: Checkout 
-      working-directory: btp-manager
-      run : |
-        git checkout charts-handling
-
     - name: Check if charts changed
       shell: bash
       run: |
@@ -62,36 +57,91 @@ jobs:
         chmod 700 get_helm.sh
         ./get_helm.sh
 
+    - name: Apply overrides
+      shell: bash
+      run: |
+        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+        curl -J -O -L https://raw.githubusercontent.com/ukff/btp-manager/charts-handling/public-overrides.yaml
+
+        get_key_from_line() {
+            IFS='=' read -ra arr <<< $1
+            key=".${arr[0]}"
+        }
+
+        yq -s '"file_" + $index' public-overrides.yaml
+
+        yq file_0.yml --input-format yaml -o props | \
+        while read line
+        do
+            get_key_from_line $line
+            echo $key
+            v=$(yq "$key" module-chart/values.yaml)
+            echo $v
+            if [[ "$v" == "null" ]]; then
+                $(yq -i "del($key)" file_0.yml)
+                continue
+            fi 
+
+            t=$(yq "$key | tag" module-chart/values.yaml)
+            echo $t
+            if [[ "$t" == "!!map" ]]; then
+                $(yq -i "del($key)" file_0.yml)
+            fi
+        done
+
+        $(yq -i '. *= load("file_0.yml")' module-chart/values.yaml)
+
+        yq file_1.yml --input-format props -o props | \
+        while read line
+        do
+            get_key_from_line $line
+            echo $key
+            $(yq -i "del($key)" module-chart/values.yaml)
+        done 
+
     - name: Make templates
       working-directory: module-chart
       run: |
-        helm template $TAG . --output-dir rendered --values ../$BTP_MANAGER_REPO/module-overrides/public-overrides.yaml
-        mv rendered/sap-btp-operator/templates/ ./module-resources
-        rm -r rendered/
-        
-    - name: Git flow
-      working-directory: btp-manager
-      shell: bash
-      run: |
-        x=$(ls -l)
-        echo $x
-        BRANCH_NAME="chart-$TAG"
-        GIT_MSG="Auto-update charts to $TAG"
+        helm template $TAG . --output-dir rendered
 
+    - name: Clean directories
+      run: |
+        mv module-chart/rendered/sap-btp-operator/templates/ ./module-resources
+        rm -r module-chart/rendered/
+
+    - name: Set Git info
+      run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
+        echo "BRANCH_NAME=chart-$TAG" >> $GITHUB_ENV
+        echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
         
+    - name: Create Branch
+      working-directory: btp-manager
+      run: |
         git checkout -B $BRANCH_NAME
 
-        yes | cp -rf ../module-resources .
-        yes | cp -rf ../module-chart .
+    - name: Copy new files 
+      run: |
+        yes | cp -rf ./module-resources $BTP_MANAGER_REPO
+        yes | cp -rf ./module-chart $BTP_MANAGER_REPO
 
+    - name: Commit Changes
+      working-directory: btp-manager
+      run: |
         git add .
         git commit -m "$GIT_MSG"
 
+    - name: Push Changes
+      working-directory: btp-manager
+      run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
+    - name: Create PR if needed
+      working-directory: btp-manager
+      shell: bash
+      run: |
         prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
        
         if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
