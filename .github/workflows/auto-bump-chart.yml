@@ -81,8 +81,8 @@ jobs:
         
         git checkout -B $BRANCH_NAME
 
-        yes | cp -rf ./module-resources $BTP_MANAGER_REPO
-        yes | cp -rf ./module-chart $BTP_MANAGER_REPO
+        yes | cp -rf module-resources $BTP_MANAGER_REPO
+        yes | cp -rf module-chart $BTP_MANAGER_REPO
 
         git add .
         git commit -m "$GIT_MSG"
