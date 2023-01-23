@@ -74,7 +74,7 @@ jobs:
       shell: bash
       run: |
         x=$(echo ls -l)
-        echo $s
+        echo $x
         BRANCH_NAME="chart-$TAG"
         GIT_MSG="Auto-update charts to $TAG"
 
