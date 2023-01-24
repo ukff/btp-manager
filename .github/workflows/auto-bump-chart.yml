@@ -52,7 +52,6 @@ jobs:
         fi
 
     - name: Make templates
-      working-directory: module-chart
       run: |
         ls -la
         ./apply-overrides.sh $TAG
