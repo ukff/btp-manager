@@ -43,6 +43,7 @@ jobs:
       shell: bash
       run: |
         ls -la
+        ls -la ../
         latest_sha=$(find ./module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
         current_sha=$(find $BTP_MANAGER_REPO/module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
 
