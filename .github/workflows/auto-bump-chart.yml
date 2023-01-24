@@ -56,7 +56,8 @@ jobs:
         git add .
 
         commit_result=$(git commit -m "$GIT_MSG")
-        if [[ $commit_result = nothing to commit* ]]; 
+        echo $commit_result
+        if [[ $commit_result == nothing to commit* ]]; 
         then
           exit 0
         fi
