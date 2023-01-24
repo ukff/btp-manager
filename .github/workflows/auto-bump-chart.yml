@@ -24,6 +24,7 @@ jobs:
         chmod 777 module-overrides/apply-overrides.sh
 
     - name: Update chart 
+      shell: bash
       run: |
         latest=$(sh module-overrides/get-latest-chart.sh)
         echo "TAG=${latest}" >> $GITHUB_ENV

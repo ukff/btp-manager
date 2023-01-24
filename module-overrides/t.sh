@@ -1,3 +1,3 @@
 #!/bin/bash
-x=$(sh get-latest-chart.sh)
+latest=$(sh module-overrides/get-latest-chart.sh)
 echo $x
