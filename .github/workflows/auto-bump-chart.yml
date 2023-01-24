@@ -70,11 +70,8 @@ jobs:
       working-directory: btp-manager
       run: |
         git checkout -B $BRANCH_NAME
-
-    - name: Copy new files 
-      run: |
-        yes | cp -rf ./module-resources $BTP_MANAGER_REPO
-        yes | cp -rf ./module-chart $BTP_MANAGER_REPO
+        yes | cp -rf ../module-resources .
+        yes | cp -rf ../module-chart .
 
     - name: Commit Changes
       working-directory: btp-manager
