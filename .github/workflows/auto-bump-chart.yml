@@ -47,6 +47,8 @@ jobs:
         BRANCH_NAME="chart-$TAG"
         GIT_MSG="Auto-update charts to $TAG" 
 
+        ls -la
+        
         git checkout -B $BRANCH_NAME
         yes | cp -rf ../module-resources .
         yes | cp -rf ../module-chart .
