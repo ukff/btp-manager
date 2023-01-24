@@ -55,10 +55,9 @@ jobs:
     - name: Make templates
       run: |
         ls -la
-        ./apply-overrides.sh $TAG
+        module-overrides/apply-overrides.sh $TAG
         
     - name: Create PR
-      working-directory: btp-manager
       run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
