@@ -31,7 +31,7 @@ jobs:
       run: |
         curl -L https://github.com/$SAP/$BTP_OPERATOR_REPO/releases/download/$TAG/sap-btp-operator-$TAG.tgz > charts.tgz
         tar zxvf charts.tgz 
-        mv sap-btp-operator module-chart
+        mv sap-btp-operator ../module-chart
 
     - uses: actions/checkout@v3 
     - name: Make templates
