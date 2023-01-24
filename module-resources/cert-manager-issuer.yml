@@ -1,9 +1,0 @@
----
-# Source: sap-btp-operator/templates/cert-manager-issuer.yml
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: sap-btp-operator-selfsigned-issuer
-  namespace: default
-spec:
-  selfSigned: {}
