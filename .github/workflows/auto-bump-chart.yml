@@ -69,6 +69,7 @@ jobs:
     - name: Create Branch
       working-directory: btp-manager
       run: |
+        ls -la
         git checkout -B $BRANCH_NAME
         yes | cp -rf ../../module-resources .
         yes | cp -rf ../../module-chart .
