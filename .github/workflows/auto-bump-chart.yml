@@ -27,9 +27,9 @@ jobs:
                   https://api.github.com/repos/$SAP/$BTP_OPERATOR_REPO/releases/latest | jq -r '.tag_name') 
         echo "TAG=${latest}" >> $GITHUB_ENV
 
-        curl -L https://github.com/$SAP/$BTP_OPERATOR_REPO/releases/download/$TAG/sap-btp-operator-$TAG.tgz > charts.tgz
-        tar zxvf charts.tgz 
-        mv sap-btp-operator module-chart
+        $(curl -L https://github.com/$SAP/$BTP_OPERATOR_REPO/releases/download/$TAG/sap-btp-operator-$TAG.tgz > charts.tgz)
+        $(tar zxvf charts.tgz)
+        $(mv sap-btp-operator module-chart)
 
     - name: Clone Kyma Repo 
       run: |
