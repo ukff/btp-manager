@@ -2,8 +2,6 @@ name: Auto bump chart
 
 env:
   ORG: ukff
-  SAP: SAP
-  BTP_OPERATOR_REPO: sap-btp-service-operator
   BTP_MANAGER_REPO: btp-manager
   GIT_EMAIL: <>
   GIT_NAME: BTP Manager
