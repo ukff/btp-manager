@@ -25,7 +25,10 @@ jobs:
                   -H "Accept: application/vnd.github+json" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
                   https://api.github.com/repos/$SAP/$BTP_OPERATOR_REPO/releases/latest | jq -r '.tag_name') 
+        
         echo "TAG=${latest}" >> $GITHUB_ENV
+        echo "BRANCH_NAME=chart-$TAG" >> $GITHUB_ENV
+        echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
 
     - name: Download Chart
       run: |
@@ -64,8 +67,6 @@ jobs:
       run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
-        echo "BRANCH_NAME=chart-$TAG" >> $GITHUB_ENV
-        echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
 
         git checkout -B $BRANCH_NAME
         yes | cp -rf ../../module-resources .
