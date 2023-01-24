@@ -25,7 +25,7 @@ jobs:
 
     - name: Update chart 
       run: |
-        latest=$(module-overrides/get-latest-chart.sh)
+        latest=$(module-overrides/get-latest-chart.sh
         echo "TAG=${latest}" >> $GITHUB_ENV
 
     - name: Make templates
