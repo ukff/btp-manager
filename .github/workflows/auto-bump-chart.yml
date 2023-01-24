@@ -37,9 +37,16 @@ jobs:
       run: |
         git clone https://github.com/$ORG/$BTP_MANAGER_REPO.git
 
+    - uses: actions/checkout@v3 
+    - name: Make templates
+      run: |
+        chmod 777 module-overrides/apply-overrides.sh
+        module-overrides/apply-overrides.sh $TAG
+
     - name: Check if charts changed
       shell: bash
       run: |
+        echo ls -la
         latest_sha=$(find ./module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
         current_sha=$(find $BTP_MANAGER_REPO/module-chart -type f -exec md5sum {} + | LC_ALL=C sort | md5sum)
 
@@ -50,14 +57,6 @@ jobs:
           echo Files are the same. No need to make bump of charts.
           exit 0
         fi
-
-    - uses: actions/checkout@v3 
-    - name: Make templates
-      run: |
-        ls -la
-        ls -la module-overrides
-        chmod 777 module-overrides/apply-overrides.sh
-        module-overrides/apply-overrides.sh $TAG
 
     - name: Create PR
       run: |
