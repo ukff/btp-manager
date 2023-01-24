@@ -59,23 +59,18 @@ jobs:
         mv rendered/sap-btp-operator/templates/ ./module-resources
         rm -r rendered/
 
-    - name: Set Git info
+    - name: Git
+      working-directory: btp-manager
       run: |
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
         echo "BRANCH_NAME=chart-$TAG" >> $GITHUB_ENV
         echo "GIT_MSG=Auto-update charts to $TAG" >> $GITHUB_ENV
-        
-    - name: Create Branch
-      working-directory: btp-manager
-      run: |
-        git checkout -B $BRANCH_NAME
-        yes | cp -rf ../module-resources .
-        yes | cp -rf ../module-chart .
 
-    - name: Commit Changes
-      working-directory: btp-manager
-      run: |
+        git checkout -B $BRANCH_NAME
+        yes | cp -rf ../../module-resources .
+        yes | cp -rf ../../module-chart .
+
         git add .
         git commit -m "$GIT_MSG"
 
