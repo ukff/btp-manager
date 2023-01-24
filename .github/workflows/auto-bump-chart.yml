@@ -56,8 +56,9 @@ jobs:
       run: |
         ls -la
         ls -la module-overrides
+        chmod 777 module-overrides/apply-overrides.sh
         module-overrides/apply-overrides.sh $TAG
-        
+
     - name: Create PR
       run: |
         git config --global user.email $GIT_EMAIL
