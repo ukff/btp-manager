@@ -33,10 +33,6 @@ jobs:
         tar zxvf charts.tgz 
         mv sap-btp-operator module-chart
 
-    - name: Clone Kyma Repo 
-      run: |
-        git clone https://github.com/$ORG/$BTP_MANAGER_REPO.git
-
     - uses: actions/checkout@v3 
     - name: Make templates
       run: |
