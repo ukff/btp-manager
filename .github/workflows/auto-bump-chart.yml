@@ -25,10 +25,13 @@ jobs:
                   -H "Accept: application/vnd.github+json" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
                   https://api.github.com/repos/$SAP/$BTP_OPERATOR_REPO/releases/latest | jq -r '.tag_name') 
-        curl -L https://github.com/$SAP/$BTP_OPERATOR_REPO/releases/download/$latest/sap-btp-operator-$latest.tgz > charts.tgz
+        echo "TAG=${latest}" >> $GITHUB_ENV
+
+    - name: Download Chart
+      run: |
+        curl -L https://github.com/$SAP/$BTP_OPERATOR_REPO/releases/download/$TAG/sap-btp-operator-$TAG.tgz > charts.tgz
         tar zxvf charts.tgz 
         mv sap-btp-operator module-chart
-        echo "TAG=${latest}" >> $GITHUB_ENV
 
     - name: Clone Kyma Repo 
       run: |
@@ -55,7 +58,7 @@ jobs:
         helm template $TAG . --output-dir rendered --values public-overrides.yaml
         mv rendered/sap-btp-operator/templates/ ../module-resources
         rm -r rendered/
-
+        
     - name: Create PR
       working-directory: btp-manager
       run: |
