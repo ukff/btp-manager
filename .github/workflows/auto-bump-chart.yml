@@ -55,6 +55,7 @@ jobs:
     - name: Make templates
       run: |
         ls -la
+        ls -la module-overrides
         module-overrides/apply-overrides.sh $TAG
         
     - name: Create PR
