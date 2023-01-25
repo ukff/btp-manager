@@ -27,6 +27,7 @@ jobs:
       shell: bash
       run: |
         latest=$(sh module-overrides/get-latest-chart.sh)
+        echo $latest
         echo "TAG=${latest}" >> $GITHUB_ENV
 
     - name: Make templates
