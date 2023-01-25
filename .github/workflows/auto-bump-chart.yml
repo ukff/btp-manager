@@ -50,6 +50,7 @@ jobs:
         echo $commit_result
         if [[ $commit_result == nothing to commit* ]]; 
         then
+          echo "eee"
           exit 0
         fi
 
