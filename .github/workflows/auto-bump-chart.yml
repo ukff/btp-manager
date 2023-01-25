@@ -16,7 +16,7 @@ jobs:
    
     steps:
 
-    - uses: actions/checkout@v3
+- uses: actions/checkout@v3
       with:
         ref: main
 
@@ -41,8 +41,6 @@ jobs:
  
         BRANCH_NAME="bchart-$TAG"
         GIT_MSG="Auto-update charts to $TAG" 
-
-        ls -la ../
         
         git add module-resources
         git add module-chart
@@ -57,20 +55,18 @@ jobs:
           echo "no new changes, exiting"
           exit 0
         fi
-        echo '1'
 
         git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
-        echo '2'
 
         prs=$(gh pr list -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
-        echo $prs
-
+        
         if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
             echo "open pr already exists, no need to create new one, pr will be updated by push from previous step"
             exit 0
         fi
-        echo '3'
+
         gh pr create -B main --title "$GIT_MSG" --body ""
+
       env:
         GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
