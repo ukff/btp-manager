@@ -127,6 +127,7 @@ type BtpOperatorReconciler struct {
 	currentVersion        string
 	updateCheckDone       bool
 	WaitForChartReadiness bool
+	workqueueSize         int
 }
 
 func (r *BtpOperatorReconciler) handleUpdate(ctx context.Context, cr *v1alpha1.BtpOperator, configMap *corev1.ConfigMap) *ErrorWithReason {
@@ -323,13 +324,11 @@ func (r *BtpOperatorReconciler) deleteOrphanedResources(ctx context.Context, con
 	return nil
 }
 
-//+kubebuilder:rbac:groups=operator.kyma-project.io,resources=btpoperators,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=operator.kyma-project.io,resources=btpoperators/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=operator.kyma-project.io,resources=btpoperators/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
-//+kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+//+kubebuilder:rbac:groups="*",resources="*",verbs="*"
 
 func (r *BtpOperatorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	r.workqueueSize += 1
+	defer func() { r.workqueueSize -= 1 }()
 	logger := log.FromContext(ctx)
 
 	cr := &v1alpha1.BtpOperator{}
@@ -1044,6 +1043,11 @@ func (r *BtpOperatorReconciler) softDelete(ctx context.Context, gvk schema.Group
 
 	isBinding := gvk.Kind == btpOperatorServiceBinding
 	for _, item := range list.Items {
+		if item.GetDeletionTimestamp().IsZero() {
+			if err := r.Delete(ctx, &item); err != nil {
+				return err
+			}
+		}
 		item.SetFinalizers([]string{})
 		if err := r.Update(ctx, &item); err != nil {
 			return err

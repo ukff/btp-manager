@@ -22,9 +22,6 @@ IMG ?= $(IMG_REGISTRY)/$(MODULE_NAME):$(MODULE_VERSION)
 
 COMPONENT_CLI_VERSION ?= latest
 
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.25.0
-
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -80,8 +77,8 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
+test: manifests kustomize generate fmt vet envtest ## Run tests.
+	. ./testing/set-env-vars.sh; go test ./... -timeout 30s -coverprofile cover.out -v
 
 ##@ Build
 
@@ -136,7 +133,7 @@ module-image: docker-build docker-push ## Build the Module Image and push it to 
 .PHONY: module-build
 module-build: kyma kustomize ## Build the Module and push it to a registry defined in MODULE_REGISTRY
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	@$(KYMA) alpha create module --channel=${MODULE_CHANNEL} --name kyma.project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path . $(MODULE_CREATION_FLAGS)
+	@$(KYMA) alpha create module --channel=${MODULE_CHANNEL} --name kyma.project.io/module/$(MODULE_NAME) --version $(MODULE_VERSION) --path config/manager $(MODULE_CREATION_FLAGS)
 
 .PHONY: module-template-push
 module-template-push: ## Pushes the ModuleTemplate referencing the Image on MODULE_REGISTRY
@@ -157,6 +154,16 @@ KUSTOMIZE_VERSION ?= v4.5.6
 kustomize: $(KUSTOMIZE) ## Download & Build kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION)
+
+########## Kyma CLI ###########
+KYMA_STABILITY ?= unstable
+
+KYMA ?= $(LOCALBIN)/kyma-$(KYMA_STABILITY)
+kyma: $(KYMA) ## Download kyma locally if necessary.
+$(KYMA): $(LOCALBIN)
+	test -f $@ || curl -# -Lo $(KYMA) https://storage.googleapis.com/kyma-cli-$(KYMA_STABILITY)/kyma-darwin
+	chmod 0500 $(KYMA)
+
 
 ########## controller-gen ###########
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
