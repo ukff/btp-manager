@@ -47,6 +47,8 @@ jobs:
         
         git checkout -B $BRANCH_NAME
         
+        git status
+
         commit_result=$(git commit -m "$GIT_MSG")
         if [[ $commit_result == "nothing to commit*" ]]; 
         then
