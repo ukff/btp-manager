@@ -43,9 +43,7 @@ jobs:
         ls -la ../
         
         git checkout -B $BRANCH_NAME
-        yes | cp -rf ../module-resources .
-        yes | cp -rf ../module-chart .
-        
+
         git add .
 
         commit_result=$(git commit -m "$GIT_MSG")
