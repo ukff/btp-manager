@@ -52,9 +52,11 @@ jobs:
           echo "no new changes, exiting"
           exit 0
         fi
+        echo '1'
 
         git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
+        echo '2'
 
         prs=$(gh pr list -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
         echo $prs
@@ -63,7 +65,7 @@ jobs:
             echo "open pr already exists, no need to create new one, pr will be updated by push from previous step"
             exit 0
         fi
-       
+        echo '3'
         gh pr create -B main --title "$GIT_MSG" --fill
       env:
         GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
