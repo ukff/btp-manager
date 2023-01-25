@@ -4,7 +4,3 @@ manager:
   enable_leader_election: true
   certificates:
     certManager: true
-
----
-#manager.rbacProxy =  ~
-#manager.image.sha =  ~
