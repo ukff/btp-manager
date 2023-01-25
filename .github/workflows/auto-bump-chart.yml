@@ -37,15 +37,15 @@ jobs:
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
  
-        BRANCH_NAME="achart-$TAG"
+        BRANCH_NAME="bchart-$TAG"
         GIT_MSG="Auto-update charts to $TAG" 
 
         ls -la ../
         
-        git checkout -B $BRANCH_NAME
-
         git add module-resources
         git add module-chart
+        
+        git checkout -B $BRANCH_NAME
         
         commit_result=$(git commit -m "$GIT_MSG")
         if [[ $commit_result == "nothing to commit*" ]]; 
