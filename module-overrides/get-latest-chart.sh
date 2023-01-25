@@ -7,4 +7,6 @@ curl -L https://github.com/SAP/sap-btp-service-operator/releases/download/$lates
 tar zxf charts.tgz 
 rsync -a sap-btp-operator/ module-chart/
 rm -r sap-btp-operator
+rm charts.tgz
+
 echo $latest
