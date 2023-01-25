@@ -47,10 +47,9 @@ jobs:
         git add .
 
         commit_result=$(git commit -m "$GIT_MSG")
-        echo $commit_result
-        if [[ $commit_result == nothing to commit* ]]; 
+        if [[ $commit_result == "nothing to commit*" ]]; 
         then
-          echo "eee"
+          echo "no new changes, exiting"
           exit 0
         fi
 
