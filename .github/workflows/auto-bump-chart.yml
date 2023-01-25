@@ -44,8 +44,9 @@ jobs:
         
         git checkout -B $BRANCH_NAME
 
-        git add .
-
+        git add module-resources
+        git add module-chart
+        
         commit_result=$(git commit -m "$GIT_MSG")
         if [[ $commit_result == "nothing to commit*" ]]; 
         then
