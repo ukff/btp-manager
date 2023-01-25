@@ -56,7 +56,7 @@ jobs:
         git remote set-url origin https://x-access-token:${{ secrets.ACCESS_TOKEN }}@github.com/$ORG/$BTP_MANAGER_REPO.git
         git push --set-upstream origin $BRANCH_NAME -f
 
-        prs=$(gh pr list -R https://github.com/$ORG/$BTP_MANAGER_REPO/ -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
+        prs=$(gh pr list -A $USERNAME --state open --json headRefName | jq -r '.[] | .headRefName')
         echo $prs
 
         if  echo $prs | tr " " '\n' | grep -F -q -x $BRANCH_NAME; then
@@ -64,6 +64,6 @@ jobs:
             exit 0
         fi
        
-        gh pr create -B main -R https://github.com/$ORG/$BTP_MANAGER_REPO/ --title "$GIT_MSG" --fill
+        gh pr create -B main --title "$GIT_MSG" --fill
       env:
         GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
