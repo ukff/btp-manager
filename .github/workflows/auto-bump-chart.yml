@@ -37,7 +37,7 @@ jobs:
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_NAME
  
-        BRANCH_NAME="chart-$TAG"
+        BRANCH_NAME="achart-$TAG"
         GIT_MSG="Auto-update charts to $TAG" 
 
         ls -la ../
