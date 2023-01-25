@@ -66,6 +66,6 @@ jobs:
             exit 0
         fi
         echo '3'
-        gh pr create -B main --title "$GIT_MSG"
+        gh pr create -B main --title "$GIT_MSG" --body ""
       env:
         GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
