@@ -1,0 +1,12 @@
+---
+# Source: sap-btp-operator/templates/configmap.yml
+apiVersion: v1
+data:
+  CLUSTER_ID: c0c8f853-4c78-492a-8328-e687535b245c
+  MANAGEMENT_NAMESPACE: default
+  RELEASE_NAMESPACE: default
+  ALLOW_CLUSTER_ACCESS: "true"
+kind: ConfigMap
+metadata:
+  name: sap-btp-operator-config
+  namespace: default
