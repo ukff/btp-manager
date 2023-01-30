@@ -2,7 +2,8 @@
 name: Promote to channel
 
 env:
-  ORG: kyma-project
+  ORG: ukff
+  KYMA_ORG: kyma-project
   BTP_MANAGER_REPO: btp-manager
   KYMA_REPO: kyma
   TEMPLATE_NAME: template.yaml
@@ -38,7 +39,7 @@ jobs:
         latest=$(curl \
                   -H "Accept: application/vnd.github+json" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
-                  https://api.github.com/repos/$ORG/$BTP_MANAGER_REPO/releases/latest | jq -r '.tag_name') 
+                  https://api.github.com/repos/$KYMA_ORG/$BTP_MANAGER_REPO/releases/latest | jq -r '.tag_name') 
 
         echo "TAG=${latest}" >> $GITHUB_ENV
 
@@ -49,7 +50,7 @@ jobs:
           tags=$(curl \
                   -H "Accept: application/vnd.github+json" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
-                  https://api.github.com/repos/$ORG/$BTP_MANAGER_REPO/tags | jq -r '.[] | .name')
+                  https://api.github.com/repos/$KYMA_ORG/$BTP_MANAGER_REPO/tags | jq -r '.[] | .name')
           
           if  echo $tags | tr " " '\n' | grep -F -q -x ${{ inputs.releaseTag }}; then
               echo "TAG=${{ inputs.releaseTag }}" >> $GITHUB_ENV
@@ -64,7 +65,7 @@ jobs:
       run: echo "BRANCH_NAME=$BTP_MANAGER_REPO-$TAG" >> $GITHUB_ENV
 
     - name: Download module template 
-      run: curl -O -J -L https://github.com/$ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
+      run: curl -O -J -L https://github.com/$KYMA_ORG/$BTP_MANAGER_REPO/releases/download/$TAG/$TEMPLATE_NAME
 
     - name: Setup GitHub config
       run: |
@@ -106,6 +107,6 @@ jobs:
             exit 0
         fi
        
-        gh pr create -B main -R https://github.com/$ORG/$KYMA_REPO/ --title "Promote BTP Manager to ( $TAG )" --fill
+        gh pr create -B main -R https://github.com/$KYMA_ORG/$KYMA_REPO/ --title "Promote BTP Manager to ( $TAG )" --fill
       env:
         GH_TOKEN: ${{ secrets.BOT_TOKEN }}
