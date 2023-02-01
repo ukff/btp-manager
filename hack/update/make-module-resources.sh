@@ -55,7 +55,7 @@ actionForExistingResource() {
 }
 
 incoming_resources=()
-
+echo 'x'
 runActionForEachYaml $NEW_RESOURCES_PATH actionForNewResource
 
 touch to-delete.yml
