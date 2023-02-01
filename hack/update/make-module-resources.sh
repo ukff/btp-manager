@@ -1,12 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
-trap 'catch' ERR
-catch() {
-    echo "error"
-    exit 1
-}
-
 readonly CHART_PATH="../../module-chart/chart"
 readonly CHART_OVERRIDES_PATH="../../module-chart/overrides.yaml"
 readonly EXISTING_RESOURCES_PATH="../../module-resources"
