@@ -1,6 +1,12 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
+trap 'on_error' ERR
+function on_error {
+    echo "error"
+    exit 1
+}
+
 readonly CHART_PATH="../../module-chart/chart"
 readonly CHART_OVERRIDES_PATH="../../module-chart/overrides.yaml"
 readonly EXISTING_RESOURCES_PATH="../../module-resources"
@@ -9,7 +15,9 @@ readonly EXISTING_RESOURCES_APPLY_PATH="../../module-resources/apply"
 readonly HELM_OUTPUT_PATH="rendered"
 readonly NEW_RESOURCES_PATH="rendered/sap-btp-operator/templates"
 
-helm template $1 $CHART_PATH --output-dir $HELM_OUTPUT_PATH --values $CHART_OVERRIDES_PATH --namespace "kyma-system"
+tag=$1
+
+helm template $tag $CHART_PATH --output-dir $HELM_OUTPUT_PATH --values $CHART_OVERRIDES_PATH --namespace "kyma-system"
 
 trap 'rm -rf -- "temp"' EXIT
 runActionForEachYaml() {

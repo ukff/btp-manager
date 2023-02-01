@@ -1,0 +1,12 @@
+---
+# Source: sap-btp-operator/templates/configmap.yml
+apiVersion: v1
+data:
+  CLUSTER_ID: 344d39d1-ad8e-46a9-a1a6-170dda6c0838
+  MANAGEMENT_NAMESPACE: kyma-system
+  RELEASE_NAMESPACE: kyma-system
+  ALLOW_CLUSTER_ACCESS: "true"
+kind: ConfigMap
+metadata:
+  name: sap-btp-operator-config
+  namespace: kyma-system
