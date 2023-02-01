@@ -23,15 +23,13 @@ jobs:
       run: |
         chmod +x hack/update/get-latest-chart-version.sh 
         latest=$(sh hack/update/get-latest-chart-version.sh)
-        echo "latests $latest"
         if [[ latest == "error" ]]; then
           exit 1
         fi
         
         current=$(yq '.version' ./module-chart/chart/Chart.yaml)
-        echo "current $current"
         if [[ $latest == $current ]]; then
-          echo "version are the same $current"
+          echo "version are the same: $latest=$current"
           echo "CONTINUE=false" >> $GITHUB_ENV
         else
           echo "version update from $current to $latest"
@@ -51,12 +49,8 @@ jobs:
     - name: Make templates
       if: env.CONTINUE == 'true'
       run: |
-        echo 1
         chmod +x hack/update/make-module-resources.sh
-        echo 2
         result=$(hack/update/make-module-resources.sh $TAG)
-        echo 3
-        echo "res: $result"
         if [[ result == "error" ]]; then
           exit 1
         fi

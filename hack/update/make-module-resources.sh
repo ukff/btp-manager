@@ -9,11 +9,12 @@ readonly EXISTING_RESOURCES_APPLY_PATH="../../module-resources/apply"
 readonly HELM_OUTPUT_PATH="rendered"
 readonly NEW_RESOURCES_PATH="rendered/sap-btp-operator/templates"
 
-helm template $1 $CHART_PATH --output-dir $HELM_OUTPUT_PATH --values $CHART_OVERRIDES_PATH --namespace "kyma-system"
+tag=$1
+
+helm template $tag $CHART_PATH --output-dir $HELM_OUTPUT_PATH --values $CHART_OVERRIDES_PATH --namespace "kyma-system"
 
 trap 'rm -rf -- "temp"' EXIT
 runActionForEachYaml() {
-  echo "rafey: $1"
   local directory=${1}
   local action=${2}
 
@@ -35,8 +36,6 @@ runActionForEachYaml() {
 
 actionForNewResource() {
   local yaml=${1}
-    echo 'x'
-  echo $yaml
   incoming_resources+=("$(yq '.metadata.name' $yaml):$(yq '.kind' $yaml)")
 }
 
@@ -48,7 +47,6 @@ actionForExistingResource() {
 }
 
 incoming_resources=()
-echo 'x'
 runActionForEachYaml $NEW_RESOURCES_PATH actionForNewResource
 
 touch to-delete.yml
