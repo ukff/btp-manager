@@ -21,6 +21,7 @@ helm template $tag $CHART_PATH --output-dir $HELM_OUTPUT_PATH --values $CHART_OV
 
 trap 'rm -rf -- "temp"' EXIT
 runActionForEachYaml() {
+  echo "rafey: $1"
   local directory=${1}
   local action=${2}
 
