@@ -23,6 +23,7 @@ jobs:
       run: |
         chmod +x hack/update/get-latest-chart-version.sh 
         latest=$(sh hack/update/get-latest-chart-version.sh)
+        echo "latests $latest"
         if [[ latest == "error"]]; then
           exit 1
         fi
