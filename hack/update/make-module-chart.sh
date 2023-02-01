@@ -1,8 +1,8 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
-trap 'on_error' ERR
-function on_error {
+trap 'catch' ERR
+catch() {
     echo "error"
     exit 1
 }
