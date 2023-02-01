@@ -20,7 +20,7 @@ jobs:
 
     - name: Check for new version
       run: |
-        chmod +x hack/update/get-latest-chart-version.sh
+        chmod +x hack/update/get-latest-chart-version.sh 
         latest=$(sh hack/update/get-latest-chart-version.sh)
         if [[ latest == "error"]]; then
           exit 1
@@ -41,7 +41,7 @@ jobs:
       if: env.CONTINUE == 'true'
       run: |
         chmod +x hack/update/make-module-chart.sh
-        result=$($hack/update/make-module-chart.sh $TAG)
+        result=$(sh hack/update/make-module-chart.sh $TAG)
         if [[ result == "error"]]; then
           exit 1
         fi
@@ -50,7 +50,7 @@ jobs:
       if: env.CONTINUE == 'true'
       run: |
         chmod +x hack/update/make-module-resources.sh
-        result=$(hack/update/make-module-resources.sh $TAG)
+        result=$(sh hack/update/make-module-resources.sh $TAG)
         if [[ result == "error"]]; then
           exit 1
         fi
