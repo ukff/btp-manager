@@ -53,6 +53,7 @@ jobs:
       run: |
         chmod +x hack/update/make-module-resources.sh
         result=$(sh hack/update/make-module-resources.sh $TAG)
+        echo "res: $result"
         if [[ result == "error" ]]; then
           exit 1
         fi
