@@ -42,6 +42,7 @@ runActionForEachYaml() {
 
 actionForNewResource() {
   local yaml=${1}
+  echo $yaml
   incoming_resources+=("$(yq '.metadata.name' $yaml):$(yq '.kind' $yaml)")
 }
 
