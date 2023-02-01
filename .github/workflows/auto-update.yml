@@ -51,8 +51,11 @@ jobs:
     - name: Make templates
       if: env.CONTINUE == 'true'
       run: |
+        echo 1
         chmod +x hack/update/make-module-resources.sh
+        echo 2
         result=$(sh hack/update/make-module-resources.sh $TAG)
+        echo 3
         echo "res: $result"
         if [[ result == "error" ]]; then
           exit 1
