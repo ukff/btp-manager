@@ -21,7 +21,7 @@ jobs:
     - name: Check for new version
       run: |
         chmod +x hack/update/get-latest-chart-version.sh 
-        latest=$(sh hack/update/get-latest-chart-version.sh)
+        latest=$(hack/update/get-latest-chart-version.sh)
         if [[ $? -ne 0 ]]; then
           exit 1
         fi
