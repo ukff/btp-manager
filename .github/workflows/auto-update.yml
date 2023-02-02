@@ -49,7 +49,7 @@ jobs:
       if: env.CONTINUE == 'true'
       run: |
         chmod +x hack/update/make-module-resources.sh
-        $(hack/update/make-module-resources.sh $TAG)
+        hack/update/make-module-resources.sh $TAG
         if [[ $? -ne 0 ]]; then
           echo "ee"
           exit 1
