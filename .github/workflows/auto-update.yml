@@ -22,10 +22,6 @@ jobs:
       run: |
         chmod +x hack/update/get-latest-chart-version.sh 
         latest=$(hack/update/get-latest-chart-version.sh)
-        if [[ $? -ne 0 ]]; then
-          exit 1
-        fi
-
         current=$(yq '.version' ./module-chart/chart/Chart.yaml)
         if [[ $latest == $current ]]; then
           echo "version are the same: $latest=$current"
@@ -40,10 +36,7 @@ jobs:
       if: env.CONTINUE == 'true'
       run: |
         chmod +x hack/update/make-module-chart.sh
-        $(hack/update/make-module-chart.sh $TAG)
-        if [[ $? -ne 0 ]]; then
-          exit 1
-        fi
+        hack/update/make-module-chart.sh $TAG
 
     - name: Make templates
       if: env.CONTINUE == 'true'
