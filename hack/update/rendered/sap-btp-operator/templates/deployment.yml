@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 5d31d3aa833825d02f494b5a24cb0f2d6c26ae0ecaf0293a571de6d149f666a9
+        checksum/config: a17ab72ff84f6f624df777e2dd1c46b4a48c42de522874f3b5dabcdb1d75cdcf
         checksum/config-webhook: 24fd6c741b9caffd455cd6c71285d78293f24ef7602b6851ef8c090112df555f
         sidecar.istio.io/inject: "false"
       labels:

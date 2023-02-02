@@ -13,7 +13,6 @@ readonly HELM_OUTPUT_PATH="rendered"
 readonly NEW_RESOURCES_PATH="rendered/sap-btp-operator/templates"
 
 tag=$1
-
 helm template $tag $CHART_PATH --output-dir $HELM_OUTPUT_PATH --values $CHART_OVERRIDES_PATH --namespace "kyma-system"
 
 trap 'rm -rf -- "temp"' EXIT
