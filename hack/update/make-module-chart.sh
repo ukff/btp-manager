@@ -1,11 +1,8 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+set -e
+set -o pipefail
 
-trap 'catch' ERR
-catch() {
-    echo "error"
-    exit 1
-}
+cd "$(dirname "$0")"
 
 readonly CHART_PATH="../../module-chart/chart"
 

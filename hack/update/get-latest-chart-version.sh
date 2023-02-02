@@ -1,12 +1,8 @@
 #!/bin/bash
+set -e
+set -o pipefail
+
 cd "$(dirname "$0")"
-
-trap 'catch' ERR
-catch() {
-    echo "error"
-    exit 1
-}
-
 latest=$(curl \
         -H "Accept: application/vnd.github+json" \
         -H "X-GitHub-Api-Version: 2022-11-28" \

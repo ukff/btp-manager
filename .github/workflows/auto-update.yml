@@ -23,10 +23,10 @@ jobs:
       run: |
         chmod +x hack/update/get-latest-chart-version.sh 
         latest=$(sh hack/update/get-latest-chart-version.sh)
-        if [[ latest == "error" ]]; then
+        if [[ $? -ne 0 ]]; then
           exit 1
         fi
-        
+
         current=$(yq '.version' ./module-chart/chart/Chart.yaml)
         if [[ $latest == $current ]]; then
           echo "version are the same: $latest=$current"
@@ -41,8 +41,8 @@ jobs:
       if: env.CONTINUE == 'true'
       run: |
         chmod +x hack/update/make-module-chart.sh
-        result=$(sh hack/update/make-module-chart.sh $TAG)
-        if [[ result == "error" ]]; then
+        $(sh hack/update/make-module-chart.sh $TAG)
+        if [[ $? -ne 0 ]]; then
           exit 1
         fi
 
@@ -50,8 +50,8 @@ jobs:
       if: env.CONTINUE == 'true'
       run: |
         chmod +x hack/update/make-module-resources.sh
-        result=$(hack/update/make-module-resources.sh $TAG)
-        if [[ result == "error" ]]; then
+        $(sh hack/update/make-module-resources.sh $TAG)
+        if [[ $? -ne 0 ]]; then
           exit 1
         fi
 
