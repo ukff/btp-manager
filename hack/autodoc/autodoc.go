@@ -22,9 +22,9 @@ type tableRow struct {
 	remark          string
 }
 
-func renderTable(rows []tableRow) string {
+func renderTable(rows *[]tableRow) string {
 	longestConditionReasons := 0
-	for _, row := range rows {
+	for _, row := range *rows {
 		l := len(row.conditionReason)
 		if l > longestConditionReasons {
 			longestConditionReasons = l
@@ -32,7 +32,7 @@ func renderTable(rows []tableRow) string {
 	}
 
 	longestRemark := 0
-	for _, row := range rows {
+	for _, row := range *rows {
 		l := len(row.remark)
 		if l > longestRemark {
 			longestRemark = l
@@ -46,7 +46,7 @@ func renderTable(rows []tableRow) string {
 	mdTable += "\n"
 
 	lineNumber := 1
-	for _, row := range rows {
+	for _, row := range *rows {
 		mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", appendEmptySpace(10, strconv.Itoa(lineNumber), " "), appendEmptySpace(10, row.crState, " "), appendEmptySpace(10, row.conditionType, " "), appendEmptySpace(10, strconv.FormatBool(row.conditionStatus), " "), appendEmptySpace(longestConditionReasons, row.conditionReason, " "), appendEmptySpace(longestRemark, row.remark, " "))
 		mdTable += "\n"
 		lineNumber++
@@ -85,14 +85,15 @@ func main() {
 		return allTableRows[i].conditionReason < allTableRows[j].conditionReason
 	})
 
-	expectedTable := renderTable(allTableRows)
+	expectedTable := renderTable(&allTableRows)
 	fmt.Println(expectedTable)
 	fmt.Println(orginalTable)
 }
 
 func lineToRow(line string) *tableRow {
-	parts := strings.Split(line, "//")
 	var state, remark string
+
+	parts := strings.Split(line, "//")
 	words := strings.Fields(parts[0])
 	if len(words) > 0 {
 		reason := words[0]
