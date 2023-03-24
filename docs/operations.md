@@ -101,7 +101,7 @@ If an error occurs during the deprovisioning, state of BtpOperator CR is set to 
 The state of BTP Operator CR is represented by [**Status**](https://github.com/kyma-project/module-manager/blob/main/pkg/declarative/v2/object.go#L23) that comprises State
 and Conditions.
 Only one Condition of type `Ready` is used.
-
+// gophers_table_start
 | No. | CR state    | Condition type | Condition status  | Condition reason                      | Remark                                                                         |
 |-----|-------------|----------------|-------------------|---------------------------------------|--------------------------------------------------------------------------------|
 | 1   | Ready       | Ready          | True              | ReconcileSucceeded                    | Reconciled successfully                                                        |
@@ -126,6 +126,8 @@ Only one Condition of type `Ready` is used.
 | 20  | Error       | Ready          | False             | DeletionOfOrphanedResourcesFailed     | Deletion of orphaned resources failed                                          |
 | 21  | Error       | Ready          | False             | StoringChartDetailsFailed             | Failure of storing chart details                                               |
 | 22  | Error       | Ready          | False             | GettingConfigMapFailed                | Getting Config Map failed                                                      |    
+// gophers_table_end
+
 ## Updating
 
 The update process is almost the same as the provisioning process. The only difference is BtpOperator CR existence in the cluster, 

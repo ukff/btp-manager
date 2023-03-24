@@ -7,6 +7,7 @@ import (
 
 type Reason string
 
+// gophers_reasons_section_start
 const (
 	ReconcileSucceeded                    Reason = "ReconcileSucceeded"
 	ReconcileFailed                       Reason = "ReconcileFailed"
@@ -38,6 +39,8 @@ const (
 	ReadyType                                    = "Ready"
 )
 
+// gophers_reasons_section_end
+
 type TypeAndStatus struct {
 	Status metav1.ConditionStatus
 	Type   string
@@ -53,8 +56,9 @@ var NotReady = TypeAndStatus{
 	Type:   ReadyType,
 }
 
+// gophers_metadata_section_start
 var Reasons = map[Reason]TypeAndStatus{
-	ReconcileSucceeded:                    Ready,
+	ReconcileSucceeded:                    Ready, //
 	UpdateDone:                            Ready,
 	UpdateCheckSucceeded:                  Ready,
 	ReconcileFailed:                       NotReady,
@@ -82,6 +86,8 @@ var Reasons = map[Reason]TypeAndStatus{
 	UpdateFailed:                          NotReady,
 	ServiceInstancesAndBindingsNotCleaned: NotReady,
 }
+
+// gophers_metadata_section_end
 
 func ConditionFromExistingReason(reason Reason, message string) *metav1.Condition {
 	typeAndStatus, found := Reasons[reason]
