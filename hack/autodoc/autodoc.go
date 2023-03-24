@@ -66,7 +66,7 @@ func appendEmptySpace(x int, s string, c string) string {
 	return e
 }
 
-func ss(x []tableRow) {
+func sortByConditionReasons(x []tableRow) {
 	sort.Slice(x, func(i, j int) bool {
 		return x[i].conditionReason < x[j].conditionReason
 	})
@@ -84,7 +84,6 @@ func main() {
 		panic(err)
 	}
 	p := strings.Split(outb.String(), "====")
-	fmt.Println(p[1])
 	holder := holder{}
 	metadata := strings.Split(p[1], "!")
 	for _, v := range metadata {
@@ -92,10 +91,10 @@ func main() {
 		holder.lineToRow(v)
 	}
 
-	ss(holder.ready)
-	ss(holder.proccessing)
-	ss(holder.deleting)
-	ss(holder.error)
+	sortByConditionReasons(holder.ready)
+	sortByConditionReasons(holder.proccessing)
+	sortByConditionReasons(holder.deleting)
+	sortByConditionReasons(holder.error)
 
 	ctr := make([]tableRow, 0)
 	ctr = append(ctr, holder.ready...)
@@ -131,6 +130,7 @@ func (h *holder) lineToRow(line string) {
 		}
 
 		conditionStats := calculateConditionStatus(crState, conditionType)
+		fmt.Println(conditionStats)
 		cleanString(&state)
 		cleanString(&crState)
 		cleanString(&conditionType)
