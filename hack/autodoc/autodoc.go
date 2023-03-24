@@ -14,18 +14,12 @@ const (
 )
 
 type tableRow struct {
+	groupOrder      int
 	crState         string
 	conditionType   string
 	conditionStatus bool
 	conditionReason string
 	remark          string
-}
-
-type holder struct {
-	ready       []tableRow
-	proccessing []tableRow
-	deleting    []tableRow
-	error       []tableRow
 }
 
 func renderTable(rows []tableRow) string {
@@ -71,45 +65,32 @@ func appendEmptySpace(x int, s string, c string) string {
 	return e
 }
 
-func sortByConditionReasons(x []tableRow) {
-	sort.Slice(x, func(i, j int) bool {
-		return x[i].conditionReason < x[j].conditionReason
-	})
-}
-
 func main() {
-	cmd := exec.Command("/bin/sh", "table.sh")
-	var cmdOut, cmdErr bytes.Buffer
-	cmd.Stdout = &cmdOut
-	cmd.Stderr = &cmdErr
-	if err := cmd.Run(); err != nil {
-		fmt.Println(cmdErr.String())
-		panic(err)
-	}
-
-	inputData := strings.Split(cmdOut.String(), "====")
-	holder := holder{}
-	reasonMetadata := strings.Split(inputData[1], "!")
-	for _, dataLine := range reasonMetadata {
-		holder.lineToRow(dataLine)
-	}
-
-	sortByConditionReasons(holder.ready)
-	sortByConditionReasons(holder.proccessing)
-	sortByConditionReasons(holder.deleting)
-	sortByConditionReasons(holder.error)
-
+	rawData := getRawData()
+	dataParts := strings.Split(rawData, "====")
+	reasonMetadata := strings.Split(dataParts[1], "!")
+	orginalTable := dataParts[2]
 	allTableRows := make([]tableRow, 0)
-	allTableRows = append(allTableRows, holder.ready...)
-	allTableRows = append(allTableRows, holder.proccessing...)
-	allTableRows = append(allTableRows, holder.deleting...)
-	allTableRows = append(allTableRows, holder.error...)
+	for _, dataLine := range reasonMetadata {
+		l := lineToRow(dataLine)
+		if l != nil {
+			allTableRows = append(allTableRows, *l)
+		}
+	}
+
+	sort.Slice(allTableRows, func(i, j int) bool {
+		if allTableRows[i].groupOrder != allTableRows[j].groupOrder {
+			return allTableRows[i].groupOrder < allTableRows[j].groupOrder
+		}
+		return allTableRows[i].conditionReason < allTableRows[j].conditionReason
+	})
 
 	expectedTable := renderTable(allTableRows)
 	fmt.Println(expectedTable)
+	fmt.Println(orginalTable)
 }
 
-func (h *holder) lineToRow(line string) {
+func lineToRow(line string) *tableRow {
 	parts := strings.Split(line, "//")
 	var state, remark string
 	words := strings.Fields(parts[0])
@@ -124,31 +105,55 @@ func (h *holder) lineToRow(line string) {
 			}
 		}
 
-		conditionStats := state == "Ready" && conditionType == "Ready"
 		cleanString(&state)
 		cleanString(&conditionType)
 		cleanString(&remark)
 		cleanString(&reason)
 
-		row := &tableRow{
+		return &tableRow{
+			groupOrder:      detectGroupOrder(state),
 			crState:         state,
 			conditionType:   conditionType,
-			conditionStatus: conditionStats,
+			conditionStatus: calculateConditionStatus(state, conditionType),
 			conditionReason: reason,
 			remark:          remark,
 		}
-
-		switch state {
-		case "Ready":
-			h.ready = append(h.ready, *row)
-		case "Processing":
-			h.proccessing = append(h.proccessing, *row)
-		case "Error":
-			h.error = append(h.error, *row)
-		case "Deleting":
-			h.deleting = append(h.deleting, *row)
-		}
 	}
+
+	return nil
+}
+
+func getRawData() string {
+	cmd := exec.Command("/bin/sh", "table.sh")
+	var cmdOut, cmdErr bytes.Buffer
+	cmd.Stdout = &cmdOut
+	cmd.Stderr = &cmdErr
+	if err := cmd.Run(); err != nil {
+		fmt.Println(cmdErr.String())
+		panic(err)
+	}
+	return cmdOut.String()
+}
+
+func detectGroupOrder(state string) int {
+	switch state {
+	case "Ready":
+		return 1
+	case "Processing":
+		return 2
+	case "Deleting":
+		return 3
+	case "Error":
+		return 4
+	case "NA":
+		return 5
+	default:
+		return 5
+	}
+}
+
+func calculateConditionStatus(state, conditionType string) bool {
+	return state == "Ready" && conditionType == "Ready"
 }
 
 func cleanString(s *string) {
