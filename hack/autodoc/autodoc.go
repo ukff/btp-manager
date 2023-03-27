@@ -272,7 +272,7 @@ func stringToStruct(line string) (error, *tableRow) {
 }
 
 func getRawData() string {
-	cmdd := exec.Command("/bin/sh", "ls", "la")
+	cmdd := exec.Command("ls", "la")
 	var cmddOut, cmddErr bytes.Buffer
 	cmdd.Stdout = &cmddOut
 	cmdd.Stderr = &cmddErr
