@@ -40,7 +40,6 @@ const (
 )
 
 // gophers_reasons_section_end
-
 type TypeAndStatus struct {
 	Status metav1.ConditionStatus
 	Type   string
@@ -58,33 +57,34 @@ var NotReady = TypeAndStatus{
 
 // gophers_metadata_section_start
 var Reasons = map[Reason]TypeAndStatus{
-	ReconcileSucceeded:                    Ready,    //Ready;Remarks!
-	UpdateDone:                            Ready,    //Ready;Updated!
-	UpdateCheckSucceeded:                  Ready,    //Ready;Update not required!
-	ReconcileFailed:                       NotReady, //NA;NA!
-	Updated:                               NotReady, //Processing;Resource has been updated!
-	Initialized:                           NotReady, //Processing;Initial processing or chart is inconsistent!
-	ChartInstallFailed:                    NotReady, //Error;Failure during chart installation!
-	ConsistencyCheckFailed:                NotReady, //Error;Failure during consistency check!
-	Processing:                            NotReady, //Processing;Final state after deprovisioning!
-	OlderCRExists:                         NotReady, //Error;This CR is not the oldest one so does not represent the module status!
-	MissingSecret:                         NotReady, //Error;sap-btp-manager secret was not found - create proper secret!
-	InvalidSecret:                         NotReady, //Error;sap-btp-manager secret does not contain required data - create proper secret!
-	HardDeleting:                          NotReady, //Deleting;Trying to hard delete!
-	ResourceRemovalFailed:                 NotReady, //Error;Some resources can still be present due to errors while deprovisioning!
-	SoftDeleting:                          NotReady, //Deleting;Trying to soft delete after hard delete failed!
-	UpdateCheck:                           NotReady, //Processing;Checking for updates!
-	InconsistentChart:                     NotReady, //Error;Chart is inconsistent. Reconciliation initialized!
-	PreparingInstallInfoFailed:            NotReady, //Error;Error while preparing InstallInfo!
-	ChartPathEmpty:                        NotReady, //Error;No chart path available for processing!
-	DeletionOfOrphanedResourcesFailed:     NotReady, //Error;Deletion of orphaned resources failed!
-	StoringChartDetailsFailed:             NotReady, //Error;Failure of storing chart details!
-	GettingConfigMapFailed:                NotReady, //Error;Getting Config Map failed!
-	CreatingObjectsFromManifestsFailed:    NotReady, //NA;NA!
-	PreparingModuleResourcesFailed:        NotReady, //NA;NA!
-	ProvisioningFailed:                    NotReady, //NA;NA!
-	UpdateFailed:                          NotReady, //NA;NA!
-	ServiceInstancesAndBindingsNotCleaned: NotReady, //Deleting;Existing Service Instance or Service Bindings blocks deprovisioning!
+	ReconcileSucceeded:                    Ready,    //Ready;Remarks
+	UpdateDone:                            Ready,    //Ready;Updated
+	UpdateCheckSucceeded:                  Ready,    //Ready;Update not required
+	ReconcileFailed:                       NotReady, //NA;NA
+	Updated:                               NotReady, //Processing;Resource has been updated
+	Initialized:                           NotReady, //Processing;Initial processing or chart is inconsistent
+	ChartInstallFailed:                    NotReady, //Error;Failure during chart installation
+	ConsistencyCheckFailed:                NotReady, //Error;Failure during consistency check
+	Processing:                            NotReady, //Processing;Final state after deprovisioning
+	OlderCRExists:                         NotReady, //Error;This CR is not the oldest one so does not represent the module status
+	MissingSecret:                         NotReady, //Error;sap-btp-manager secret was not found - create proper secret
+	InvalidSecret:                         NotReady, //Error;sap-btp-manager secret does not contain required data - create proper secret
+	HardDeleting:                          NotReady, //Deleting;Trying to hard delete
+	ResourceRemovalFailed:                 NotReady, //Error;Some resources can still be present due to errors while deprovisioning
+	SoftDeleting:                          NotReady, //Deleting;Trying to soft delete after hard delete failed
+	UpdateCheck:                           NotReady, //Processing;Checking for updates
+	InconsistentChart:                     NotReady, //Error;Chart is inconsistent. Reconciliation initialized
+	PreparingInstallInfoFailed:            NotReady, //Error;Error while preparing InstallInfo
+	ChartPathEmpty:                        NotReady, //Error;No chart path available for processing
+	DeletionOfOrphanedResourcesFailed:     NotReady, //Error;Deletion of orphaned resources failed
+	StoringChartDetailsFailed:             NotReady, //Error;Failure of storing chart details
+	GettingConfigMapFailed:                NotReady, //Error;Getting Config Map failed
+	CreatingObjectsFromManifestsFailed:    NotReady, //NA;NA
+	PreparingModuleResourcesFailed:        NotReady, //NA;NA
+	ProvisioningFailed:                    NotReady, //NA;NA
+	UpdateFailed:                          NotReady, //NA;NA
+	ServiceInstancesAndBindingsNotCleaned: NotReady, //Deleting;NA
+	ReadyType:                             NotReady, //NA;NA
 }
 
 // gophers_metadata_section_end
