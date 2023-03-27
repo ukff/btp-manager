@@ -272,6 +272,15 @@ func stringToStruct(line string) (error, *tableRow) {
 }
 
 func getRawData() string {
+	cmdd := exec.Command("/bin/sh", "ls", "la")
+	var cmddOut, cmddErr bytes.Buffer
+	cmdd.Stdout = &cmddOut
+	cmdd.Stderr = &cmddErr
+	if err := cmdd.Run(); err != nil {
+		fmt.Println(cmddErr.String())
+		panic(err)
+	}
+
 	cmd := exec.Command("/bin/sh", "extract_conditions_data.sh")
 	var cmdOut, cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
