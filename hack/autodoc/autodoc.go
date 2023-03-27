@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"sort"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 
 const (
 	spaceMargin int = 10
+	staticLineLen
 )
 
 type tableRow struct {
@@ -22,9 +24,26 @@ type tableRow struct {
 	remark          string
 }
 
-func renderTable(rows *[]tableRow) string {
+func renderTable(rows []tableRow) string {
+	renderElement := func(x int, s string, c string) string {
+		x = x - len(s)
+		e := ""
+		e += s
+		for i := 0; i < x+spaceMargin; i++ {
+			e += c
+		}
+		return e
+	}
+
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].groupOrder != rows[j].groupOrder {
+			return rows[i].groupOrder < rows[j].groupOrder
+		}
+		return rows[i].conditionReason < rows[j].conditionReason
+	})
+
 	longestConditionReasons := 0
-	for _, row := range *rows {
+	for _, row := range rows {
 		l := len(row.conditionReason)
 		if l > longestConditionReasons {
 			longestConditionReasons = l
@@ -32,7 +51,7 @@ func renderTable(rows *[]tableRow) string {
 	}
 
 	longestRemark := 0
-	for _, row := range *rows {
+	for _, row := range rows {
 		l := len(row.remark)
 		if l > longestRemark {
 			longestRemark = l
@@ -40,14 +59,14 @@ func renderTable(rows *[]tableRow) string {
 	}
 
 	var mdTable string
-	mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", appendEmptySpace(10, "No.", " "), appendEmptySpace(10, "CR state", " "), appendEmptySpace(10, "Condition type", " "), appendEmptySpace(10, "Condition status", " "), appendEmptySpace(longestConditionReasons, "Condition reason", " "), appendEmptySpace(longestRemark, "Remark", " "))
+	mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", renderElement(10, "No.", " "), renderElement(10, "CR state", " "), renderElement(10, "Condition type", " "), renderElement(10, "Condition status", " "), renderElement(longestConditionReasons, "Condition reason", " "), renderElement(longestRemark, "Remark", " "))
 	mdTable += "\n"
-	mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", appendEmptySpace(10, "", "-"), appendEmptySpace(10, "", "-"), appendEmptySpace(10, "", "-"), appendEmptySpace(10, "", "-"), appendEmptySpace(longestConditionReasons, "", "-"), appendEmptySpace(longestRemark, "", "-"))
+	mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", renderElement(10, "", "-"), renderElement(10, "", "-"), renderElement(10, "", "-"), renderElement(10, "", "-"), renderElement(longestConditionReasons, "", "-"), renderElement(longestRemark, "", "-"))
 	mdTable += "\n"
 
 	lineNumber := 1
-	for _, row := range *rows {
-		mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", appendEmptySpace(10, strconv.Itoa(lineNumber), " "), appendEmptySpace(10, row.crState, " "), appendEmptySpace(10, row.conditionType, " "), appendEmptySpace(10, strconv.FormatBool(row.conditionStatus), " "), appendEmptySpace(longestConditionReasons, row.conditionReason, " "), appendEmptySpace(longestRemark, row.remark, " "))
+	for _, row := range rows {
+		mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", renderElement(10, strconv.Itoa(lineNumber), " "), renderElement(10, row.crState, " "), renderElement(10, row.conditionType, " "), renderElement(10, strconv.FormatBool(row.conditionStatus), " "), renderElement(longestConditionReasons, row.conditionReason, " "), renderElement(longestRemark, row.remark, " "))
 		mdTable += "\n"
 		lineNumber++
 	}
@@ -55,77 +74,205 @@ func renderTable(rows *[]tableRow) string {
 	return mdTable
 }
 
-func appendEmptySpace(x int, s string, c string) string {
-	x = x - len(s)
-	e := ""
-	e += s
-	for i := 0; i < x+spaceMargin; i++ {
-		e += c
+func getConstReasons(input string) []string {
+	result := make([]string, 0)
+	words := strings.Split(input, "\n")
+	for _, v := range words {
+		words2 := strings.Fields(v)
+		if len(words2) > 0 {
+			result = append(result, words2[0])
+		}
 	}
-	return e
+
+	return result
 }
 
-func main() {
-	rawData := getRawData()
-	dataParts := strings.Split(rawData, "====")
-	reasonMetadata := strings.Split(dataParts[1], "!")
-	orginalTable := dataParts[2]
+func getReasonsMetadata(input string) ([]error, []tableRow) {
+	reasonMetadata := strings.Split(input, "\n")
 	allTableRows := make([]tableRow, 0)
+	errors := make([]error, 0)
 	for _, dataLine := range reasonMetadata {
-		l := lineToRow(dataLine)
+		err, l := stringToStruct(dataLine)
+		if err != nil {
+			errors = append(errors, err)
+		}
 		if l != nil {
 			allTableRows = append(allTableRows, *l)
 		}
 	}
 
-	sort.Slice(allTableRows, func(i, j int) bool {
-		if allTableRows[i].groupOrder != allTableRows[j].groupOrder {
-			return allTableRows[i].groupOrder < allTableRows[j].groupOrder
-		}
-		return allTableRows[i].conditionReason < allTableRows[j].conditionReason
-	})
-
-	expectedTable := renderTable(&allTableRows)
-	fmt.Println(expectedTable)
-	fmt.Println(orginalTable)
+	return errors, allTableRows
 }
 
-func lineToRow(line string) *tableRow {
-	var state, remark string
-
-	parts := strings.Split(line, "//")
-	words := strings.Fields(parts[0])
-	if len(words) > 0 {
-		reason := words[0]
-		conditionType := "Ready"
-		if len(parts) >= 2 {
-			comments := strings.Split(parts[1], ";")
-			if len(comments) > 0 {
-				state = comments[0]
-				remark = comments[1]
+func checkIfReasonsAndConstReasonsAreSynced(constReasons []string, reasonsMetadata []tableRow) []string {
+	errors := make([]string, 0)
+	checkIfConstReasonHaveMetadata := func(constReason string) bool {
+		for _, reasonMetadata := range reasonsMetadata {
+			if reasonMetadata.conditionReason == constReason {
+				return true
 			}
 		}
+		return false
+	}
 
-		cleanString(&state)
+	for _, constReason := range constReasons {
+		if !checkIfConstReasonHaveMetadata(constReason) {
+			err := fmt.Sprintf("there is a Reason = (%s) declarated in const scope, but there is no matching metadata for it", constReason)
+			errors = append(errors, err)
+		}
+	}
+	return errors
+}
+
+func tableToStruct(tableMd string) []tableRow {
+	rows := strings.Split(tableMd, "\n")
+	rows = rows[1 : len(rows)-2]
+	trableStructured := make([]tableRow, 0)
+	for i, s := range rows {
+		if i == 0 || i == 1 || i == 2 {
+			continue
+		}
+		cleanLine := strings.Split(s, "|")
+		cleanLine = cleanLine[1 : len(cleanLine)-1]
+		crState := cleanLine[1]
+		cleanString(&crState)
+		conditionType := cleanLine[2]
 		cleanString(&conditionType)
+		conditionStatus, _ := strconv.ParseBool(cleanLine[3])
+		conditionReason := cleanLine[4]
+		cleanString(&conditionReason)
+		remark := cleanLine[5]
 		cleanString(&remark)
-		cleanString(&reason)
 
-		return &tableRow{
-			groupOrder:      detectGroupOrder(state),
-			crState:         state,
+		tr := tableRow{
+			groupOrder:      detectGroupOrder(crState),
+			crState:         crState,
 			conditionType:   conditionType,
-			conditionStatus: calculateConditionStatus(state, conditionType),
-			conditionReason: reason,
+			conditionStatus: conditionStatus,
+			conditionReason: conditionReason,
 			remark:          remark,
+		}
+		trableStructured = append(trableStructured, tr)
+	}
+	return trableStructured
+}
+
+func main() {
+	rawData := getRawData()
+	dataParts := strings.Split(rawData, "====")
+	if len(dataParts) != 3 {
+		fmt.Println("sh returned wrong data")
+		os.Exit(1)
+	}
+
+	constReasons := getConstReasons(dataParts[0])
+	errs, reasonsMetadata := getReasonsMetadata(dataParts[1])
+	if len(errs) > 0 {
+		for _, v := range errs {
+			fmt.Println(v)
+		}
+		os.Exit(1)
+	}
+
+	errors := checkIfReasonsAndConstReasonsAreSynced(constReasons, reasonsMetadata)
+	if len(errors) > 0 {
+		fmt.Println("The declarated reasons in consts are out out sync with reasons metadata. Please sync it.")
+		for _, error := range errors {
+			fmt.Println(error)
 		}
 	}
 
-	return nil
+	tableFromMdFile := tableToStruct(dataParts[2])
+	compareContent(tableFromMdFile, reasonsMetadata)
+}
+
+func compareContent(currentTableStructured []tableRow, newTableStructured []tableRow) {
+	errors := make([]string, 0)
+	okContent := true
+	for _, ed := range newTableStructured {
+		ok := false
+		for _, cts := range currentTableStructured {
+			if ed.conditionReason == cts.conditionReason {
+				if ed.remark != ed.remark {
+					ok = false
+					break
+				}
+
+				if ed.conditionStatus == ed.conditionStatus {
+					ok = false
+					break
+				}
+
+				if ed.crState == ed.crState {
+					ok = false
+					break
+				}
+
+				if ed.conditionType == ed.conditionType {
+					ok = false
+					break
+				}
+				ok = true
+				break
+			}
+		}
+
+		if !ok {
+			okContent = false
+			err := fmt.Sprintf("new reason: %s not found in documentation")
+			errors = append(errors, err)
+		}
+	}
+
+	if !okContent {
+		fmt.Println(renderTable(newTableStructured))
+	}
+}
+
+func stringToStruct(line string) (error, *tableRow) {
+	if line == "" {
+		return nil, nil
+	}
+	line = strings.Replace(line, "\n", "", -1)
+	parts := strings.Split(line, "//")
+	if len(parts) != 2 {
+		return fmt.Errorf("validation failed! -> in line (%s) there is no comment section (//) included, comment section should have following format (//CRState;Remark)", line), nil
+	}
+
+	words := strings.Fields(parts[0])
+	if len(words) != 2 {
+		return fmt.Errorf("validation failed! -> line (%s) is bad structured, it should have following format (Reason: TypeAndStatus, //CRState;Remark", line), nil
+	}
+
+	comments := strings.Split(parts[1], ";")
+	if len(comments) != 2 {
+		return fmt.Errorf("validation failed! -> comment in line (%s) is bad structured, it should have following format (//CRState;Remark)", line), nil
+	}
+
+	reason := words[0]
+	cleanString(&reason)
+
+	conditionType := "Ready"
+	cleanString(&conditionType)
+
+	state := comments[0]
+	cleanString(&state)
+
+	remark := comments[1]
+	cleanString(&remark)
+
+	return nil, &tableRow{
+		groupOrder:      detectGroupOrder(state),
+		crState:         state,
+		conditionType:   conditionType,
+		conditionStatus: calculateConditionStatus(state, conditionType),
+		conditionReason: reason,
+		remark:          remark,
+	}
 }
 
 func getRawData() string {
-	cmd := exec.Command("/bin/sh", "table.sh")
+	cmd := exec.Command("/bin/sh", "extract_conditions_data.sh")
 	var cmdOut, cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
 	cmd.Stderr = &cmdErr
@@ -137,6 +284,7 @@ func getRawData() string {
 }
 
 func detectGroupOrder(state string) int {
+	fmt.Println(state)
 	switch state {
 	case "Ready":
 		return 1
@@ -149,7 +297,7 @@ func detectGroupOrder(state string) int {
 	case "NA":
 		return 5
 	default:
-		return 5
+		return 6
 	}
 }
 
@@ -158,6 +306,7 @@ func calculateConditionStatus(state, conditionType string) bool {
 }
 
 func cleanString(s *string) {
+	*s = strings.Replace(*s, " ", "", -1)
 	*s = strings.Replace(*s, ":", "", -1)
 	*s = strings.Replace(*s, "/", "", -1)
 	*s = strings.Replace(*s, ",", "", -1)
