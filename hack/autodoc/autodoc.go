@@ -13,6 +13,7 @@ import (
 const (
 	spaceMargin int = 10
 	staticLineLen
+	errorExitCode = 1
 )
 
 type tableRow struct {
@@ -189,43 +190,65 @@ func main() {
 func compareContent(currentTableStructured []tableRow, newTableStructured []tableRow) {
 	errors := make([]string, 0)
 	okContent := true
+
+	f := func(a, b, s string) {
+		fmt.Println(fmt.Sprintf("Docs are not synced with Go code, difference detected in reason (%s), current value is (%s) but newer is (%s)", s, a, b))
+	}
 	for _, ed := range newTableStructured {
 		ok := false
+		allMatch := false
 		for _, cts := range currentTableStructured {
+			//fmt.Println(fmt.Sprintf("comparing %s to %s", ed.conditionReason, cts.conditionReason))
 			if ed.conditionReason == cts.conditionReason {
-				if ed.remark != ed.remark {
-					ok = false
-					break
-				}
-
-				if ed.conditionStatus == ed.conditionStatus {
-					ok = false
-					break
-				}
-
-				if ed.crState == ed.crState {
-					ok = false
-					break
-				}
-
-				if ed.conditionType == ed.conditionType {
-					ok = false
-					break
-				}
 				ok = true
+				if ed.remark != cts.remark {
+					allMatch = false
+					//errors = append(errors, fmt.Sprintf("conditionReason different"))
+					f(cts.remark, ed.remark, ed.conditionReason)
+					break
+				}
+
+				if ed.conditionStatus != cts.conditionStatus {
+					allMatch = false
+					//errors = append(errors, fmt.Sprintf("conditionStatus different"))
+					f(strconv.FormatBool(cts.conditionStatus), strconv.FormatBool(ed.conditionStatus), ed.conditionReason)
+					break
+				}
+
+				if ed.crState != cts.crState {
+					errors = append(errors, fmt.Sprintf("crState different"))
+					allMatch = false
+					f(cts.crState, ed.crState, ed.conditionReason)
+					break
+				}
+
+				if ed.conditionType != cts.conditionType {
+					errors = append(errors, fmt.Sprintf("conditionType different"))
+					allMatch = false
+					f(cts.conditionType, ed.conditionType, ed.conditionReason)
+					break
+				}
+				allMatch = true
 				break
 			}
 		}
 
 		if !ok {
 			okContent = false
-			err := fmt.Sprintf("new reason: %s not found in documentation")
+			err := fmt.Sprintf("Reason (%s) not found in docs.", ed.conditionReason)
 			errors = append(errors, err)
+		} else if !allMatch {
+			okContent = false
 		}
 	}
 
 	if !okContent {
+		for _, e := range errors {
+			fmt.Println(e)
+		}
+		fmt.Println("Below can be found auto-generated table which contain new changes:")
 		fmt.Println(renderTable(newTableStructured))
+		os.Exit(errorExitCode)
 	}
 }
 
@@ -272,28 +295,18 @@ func stringToStruct(line string) (error, *tableRow) {
 }
 
 func getRawData() string {
-	cmdd := exec.Command("ls")
-	var cmddOut, cmddErr bytes.Buffer
-	cmdd.Stdout = &cmddOut
-	cmdd.Stderr = &cmddErr
-	if err := cmdd.Run(); err != nil {
-		fmt.Println(cmddErr.String())
-		panic(err)
-	}
-
 	cmd := exec.Command("/bin/sh", "hack/autodoc/extract_conditions_data.sh")
 	var cmdOut, cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
 	cmd.Stderr = &cmdErr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(cmdErr.String())
-		panic(err)
+		os.Exit(errorExitCode)
 	}
 	return cmdOut.String()
 }
 
 func detectGroupOrder(state string) int {
-	fmt.Println(state)
 	switch state {
 	case "Ready":
 		return 1

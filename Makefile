@@ -86,8 +86,11 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: test
-test: manifests kustomize generate fmt vet envtest ## Run tests.
+test: manifests kustomize generate fmt vet envtest test-docs ## Run tests.
 	. ./testing/set-env-vars.sh; go test ./... -timeout $(SUITE_TIMEOUT) -coverprofile cover.out -v
+
+.PHONY: test-docs
+test-docs:
 
 ##@ Build
 
