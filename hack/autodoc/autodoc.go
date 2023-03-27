@@ -281,7 +281,7 @@ func getRawData() string {
 		panic(err)
 	}
 
-	cmd := exec.Command("/bin/sh", "extract_conditions_data.sh")
+	cmd := exec.Command("/bin/sh", "./extract_conditions_data.sh")
 	var cmdOut, cmdErr bytes.Buffer
 	cmd.Stdout = &cmdOut
 	cmd.Stderr = &cmdErr
