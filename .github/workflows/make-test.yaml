@@ -28,7 +28,6 @@ jobs:
 
     - name: Auto validate documentation
       run: | 
-        ls -la
         go run hack/autodoc/autodoc.go
 
     - name: Unit tests
