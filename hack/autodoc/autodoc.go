@@ -11,9 +11,11 @@ import (
 )
 
 const (
-	spaceMargin int = 10
-	staticLineLen
-	errorExitCode = 1
+	spaceMargin             = 10
+	errorExitCode           = 1
+	okExitCode              = 0
+	expectedDataChunksCount = 3
+	dataSeparator           = "==="
 )
 
 type tableRow struct {
@@ -23,6 +25,179 @@ type tableRow struct {
 	conditionStatus bool
 	conditionReason string
 	remark          string
+}
+
+func main() {
+	dataForProcessing := getConditionsData()
+	dataChunks := strings.Split(dataForProcessing, "====")
+	if len(dataChunks) != expectedDataChunksCount {
+		fmt.Println("'extract_conditions_data.sh' data output failed, it should contain 3 elements")
+		os.Exit(errorExitCode)
+	}
+
+	constReasons := getConstReasons(dataChunks[0])
+	errors, reasonsMetadata := getAndValidateReasonsMetadata(dataChunks[1])
+	if len(errors) > 0 {
+		printErrors(errors)
+		os.Exit(errorExitCode)
+	}
+
+	errors = checkIfConstsAndMetadataAreInSync(constReasons, reasonsMetadata)
+	if len(errors) > 0 {
+		fmt.Println("The declared reasons in const Go section are out out sync with Reasons metadata")
+		printErrors(errors)
+		os.Exit(errorExitCode)
+	}
+
+	tableFromMdFile := tableToStruct(dataChunks[2])
+	errors = compareContent(tableFromMdFile, reasonsMetadata)
+	if len(errors) > 0 {
+		printErrors(errors)
+		fmt.Println("Below can be found auto-generated table which contain new changes:")
+		fmt.Println(renderTable(reasonsMetadata))
+		os.Exit(errorExitCode)
+	}
+
+	os.Exit(okExitCode)
+}
+
+func getConditionsData() string {
+	cmd := exec.Command("/bin/sh", "hack/autodoc/extract_conditions_data.sh")
+	var cmdOut, cmdErr bytes.Buffer
+	cmd.Stdout = &cmdOut
+	cmd.Stderr = &cmdErr
+	if err := cmd.Run(); err != nil {
+		fmt.Errorf(cmdErr.String())
+		os.Exit(errorExitCode)
+	}
+	return cmdOut.String()
+}
+
+func getConstReasons(input string) []string {
+	result := make([]string, 0)
+	words := strings.Split(input, "\n")
+	for _, v := range words {
+		words2 := strings.Fields(v)
+		if len(words2) > 0 {
+			result = append(result, words2[0])
+		}
+	}
+	return result
+}
+
+func getAndValidateReasonsMetadata(input string) ([]string, []tableRow) {
+	reasonMetadata := strings.Split(input, "\n")
+	allTableRows := make([]tableRow, 0)
+	errors := make([]string, 0)
+	for _, dataLine := range reasonMetadata {
+		err, lineStructured := tryConvertGoLineToStruct(dataLine)
+		if err != nil {
+			errors = append(errors, err.Error())
+			continue
+		}
+		if lineStructured != nil {
+			allTableRows = append(allTableRows, *lineStructured)
+		}
+	}
+
+	return errors, allTableRows
+}
+
+func checkIfConstsAndMetadataAreInSync(constReasons []string, reasonsMetadata []tableRow) []string {
+	errors := make([]string, 0)
+	checkIfConstReasonHaveMetadata := func(constReason string) bool {
+		for _, reasonMetadata := range reasonsMetadata {
+			if reasonMetadata.conditionReason == constReason {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, constReason := range constReasons {
+		if !checkIfConstReasonHaveMetadata(constReason) {
+			errors = append(errors, fmt.Sprintf("there is a Reason = (%s) declarated in const scope, but there is no matching metadata for it", constReason))
+		}
+	}
+	return errors
+}
+
+func tableToStruct(tableMd string) []tableRow {
+	rows := strings.Split(tableMd, "\n")
+	rows = rows[1 : len(rows)-2]
+	trableStructured := make([]tableRow, 0)
+	for i, s := range rows {
+		if i == 0 || i == 1 || i == 2 {
+			continue
+		}
+		cleanLine := strings.Split(s, "|")
+		cleanLine = cleanLine[1 : len(cleanLine)-1]
+		crState := cleanLine[1]
+		cleanString(&crState)
+		conditionType := cleanLine[2]
+		cleanString(&conditionType)
+		conditionStatus, _ := strconv.ParseBool(cleanLine[3])
+		conditionReason := cleanLine[4]
+		cleanString(&conditionReason)
+		remark := cleanLine[5]
+		cleanString(&remark)
+
+		tr := tableRow{
+			groupOrder:      detectGroupOrder(crState),
+			crState:         crState,
+			conditionType:   conditionType,
+			conditionStatus: conditionStatus,
+			conditionReason: conditionReason,
+			remark:          remark,
+		}
+		trableStructured = append(trableStructured, tr)
+	}
+	return trableStructured
+}
+
+func compareContent(currentTableStructured []tableRow, newTableStructured []tableRow) []string {
+	errors := make([]string, 0)
+
+	logValidationFailedMessage := func(a, b, s string) string {
+		if a != b {
+			return fmt.Sprintf("Docs are not synced with Go code, difference detected in reason (%s), current value in docs is (%s) but newer in Go code is (%s)", s, a, b)
+		}
+		return ""
+	}
+
+	for _, newRow := range newTableStructured {
+		found := false
+		for _, currentRow := range currentTableStructured {
+			if newRow.conditionReason == currentRow.conditionReason {
+				found = true
+				if newRow.remark != currentRow.remark {
+					errors = append(errors, logValidationFailedMessage(currentRow.remark, newRow.remark, newRow.conditionReason))
+					break
+				}
+
+				if newRow.conditionStatus != currentRow.conditionStatus {
+					errors = append(errors, logValidationFailedMessage(strconv.FormatBool(currentRow.conditionStatus), strconv.FormatBool(newRow.conditionStatus), newRow.conditionReason))
+					break
+				}
+
+				if newRow.crState != currentRow.crState {
+					errors = append(errors, logValidationFailedMessage(currentRow.crState, newRow.crState, newRow.conditionReason))
+					break
+				}
+
+				if newRow.conditionType != currentRow.conditionType {
+					errors = append(errors, logValidationFailedMessage(currentRow.conditionType, newRow.conditionType, newRow.conditionReason))
+					break
+				}
+				break
+			}
+		}
+
+		if !found {
+			errors = append(errors, fmt.Sprintf("Reason (%s) not found in docs.", newRow.conditionReason))
+		}
+	}
+	return errors
 }
 
 func renderTable(rows []tableRow) string {
@@ -75,186 +250,9 @@ func renderTable(rows []tableRow) string {
 	return mdTable
 }
 
-func getConstReasons(input string) []string {
-	result := make([]string, 0)
-	words := strings.Split(input, "\n")
-	for _, v := range words {
-		words2 := strings.Fields(v)
-		if len(words2) > 0 {
-			result = append(result, words2[0])
-		}
-	}
-
-	return result
-}
-
-func getReasonsMetadata(input string) ([]error, []tableRow) {
-	reasonMetadata := strings.Split(input, "\n")
-	allTableRows := make([]tableRow, 0)
-	errors := make([]error, 0)
-	for _, dataLine := range reasonMetadata {
-		err, l := stringToStruct(dataLine)
-		if err != nil {
-			errors = append(errors, err)
-		}
-		if l != nil {
-			allTableRows = append(allTableRows, *l)
-		}
-	}
-
-	return errors, allTableRows
-}
-
-func checkIfReasonsAndConstReasonsAreSynced(constReasons []string, reasonsMetadata []tableRow) []string {
-	errors := make([]string, 0)
-	checkIfConstReasonHaveMetadata := func(constReason string) bool {
-		for _, reasonMetadata := range reasonsMetadata {
-			if reasonMetadata.conditionReason == constReason {
-				return true
-			}
-		}
-		return false
-	}
-
-	for _, constReason := range constReasons {
-		if !checkIfConstReasonHaveMetadata(constReason) {
-			err := fmt.Sprintf("there is a Reason = (%s) declarated in const scope, but there is no matching metadata for it", constReason)
-			errors = append(errors, err)
-		}
-	}
-	return errors
-}
-
-func tableToStruct(tableMd string) []tableRow {
-	rows := strings.Split(tableMd, "\n")
-	rows = rows[1 : len(rows)-2]
-	trableStructured := make([]tableRow, 0)
-	for i, s := range rows {
-		if i == 0 || i == 1 || i == 2 {
-			continue
-		}
-		cleanLine := strings.Split(s, "|")
-		cleanLine = cleanLine[1 : len(cleanLine)-1]
-		crState := cleanLine[1]
-		cleanString(&crState)
-		conditionType := cleanLine[2]
-		cleanString(&conditionType)
-		conditionStatus, _ := strconv.ParseBool(cleanLine[3])
-		conditionReason := cleanLine[4]
-		cleanString(&conditionReason)
-		remark := cleanLine[5]
-		cleanString(&remark)
-
-		tr := tableRow{
-			groupOrder:      detectGroupOrder(crState),
-			crState:         crState,
-			conditionType:   conditionType,
-			conditionStatus: conditionStatus,
-			conditionReason: conditionReason,
-			remark:          remark,
-		}
-		trableStructured = append(trableStructured, tr)
-	}
-	return trableStructured
-}
-
-func main() {
-	rawData := getRawData()
-	dataParts := strings.Split(rawData, "====")
-	if len(dataParts) != 3 {
-		fmt.Println("sh returned wrong data")
-		os.Exit(1)
-	}
-
-	constReasons := getConstReasons(dataParts[0])
-	errs, reasonsMetadata := getReasonsMetadata(dataParts[1])
-	if len(errs) > 0 {
-		for _, v := range errs {
-			fmt.Println(v)
-		}
-		os.Exit(1)
-	}
-
-	errors := checkIfReasonsAndConstReasonsAreSynced(constReasons, reasonsMetadata)
-	if len(errors) > 0 {
-		fmt.Println("The declarated reasons in consts are out out sync with reasons metadata. Please sync it.")
-		for _, error := range errors {
-			fmt.Println(error)
-		}
-	}
-
-	tableFromMdFile := tableToStruct(dataParts[2])
-	compareContent(tableFromMdFile, reasonsMetadata)
-}
-
-func compareContent(currentTableStructured []tableRow, newTableStructured []tableRow) {
-	errors := make([]string, 0)
-	okContent := true
-
-	f := func(a, b, s string) {
-		fmt.Println(fmt.Sprintf("Docs are not synced with Go code, difference detected in reason (%s), current value is (%s) but newer is (%s)", s, a, b))
-	}
-	for _, ed := range newTableStructured {
-		ok := false
-		allMatch := false
-		for _, cts := range currentTableStructured {
-			//fmt.Println(fmt.Sprintf("comparing %s to %s", ed.conditionReason, cts.conditionReason))
-			if ed.conditionReason == cts.conditionReason {
-				ok = true
-				if ed.remark != cts.remark {
-					allMatch = false
-					//errors = append(errors, fmt.Sprintf("conditionReason different"))
-					f(cts.remark, ed.remark, ed.conditionReason)
-					break
-				}
-
-				if ed.conditionStatus != cts.conditionStatus {
-					allMatch = false
-					//errors = append(errors, fmt.Sprintf("conditionStatus different"))
-					f(strconv.FormatBool(cts.conditionStatus), strconv.FormatBool(ed.conditionStatus), ed.conditionReason)
-					break
-				}
-
-				if ed.crState != cts.crState {
-					errors = append(errors, fmt.Sprintf("crState different"))
-					allMatch = false
-					f(cts.crState, ed.crState, ed.conditionReason)
-					break
-				}
-
-				if ed.conditionType != cts.conditionType {
-					errors = append(errors, fmt.Sprintf("conditionType different"))
-					allMatch = false
-					f(cts.conditionType, ed.conditionType, ed.conditionReason)
-					break
-				}
-				allMatch = true
-				break
-			}
-		}
-
-		if !ok {
-			okContent = false
-			err := fmt.Sprintf("Reason (%s) not found in docs.", ed.conditionReason)
-			errors = append(errors, err)
-		} else if !allMatch {
-			okContent = false
-		}
-	}
-
-	if !okContent {
-		for _, e := range errors {
-			fmt.Println(e)
-		}
-		fmt.Println("Below can be found auto-generated table which contain new changes:")
-		fmt.Println(renderTable(newTableStructured))
-		os.Exit(errorExitCode)
-	}
-}
-
-func stringToStruct(line string) (error, *tableRow) {
+func tryConvertGoLineToStruct(line string) (error, *tableRow) {
 	if line == "" {
-		return nil, nil
+		return fmt.Errorf("empty line given"), nil
 	}
 	line = strings.Replace(line, "\n", "", -1)
 	parts := strings.Split(line, "//")
@@ -284,6 +282,10 @@ func stringToStruct(line string) (error, *tableRow) {
 	remark := comments[1]
 	cleanString(&remark)
 
+	calculateConditionStatus := func(state, conditionType string) bool {
+		return state == "Ready" && conditionType == "Ready"
+	}
+
 	return nil, &tableRow{
 		groupOrder:      detectGroupOrder(state),
 		crState:         state,
@@ -292,18 +294,6 @@ func stringToStruct(line string) (error, *tableRow) {
 		conditionReason: reason,
 		remark:          remark,
 	}
-}
-
-func getRawData() string {
-	cmd := exec.Command("/bin/sh", "hack/autodoc/extract_conditions_data.sh")
-	var cmdOut, cmdErr bytes.Buffer
-	cmd.Stdout = &cmdOut
-	cmd.Stderr = &cmdErr
-	if err := cmd.Run(); err != nil {
-		fmt.Println(cmdErr.String())
-		os.Exit(errorExitCode)
-	}
-	return cmdOut.String()
 }
 
 func detectGroupOrder(state string) int {
@@ -323,8 +313,10 @@ func detectGroupOrder(state string) int {
 	}
 }
 
-func calculateConditionStatus(state, conditionType string) bool {
-	return state == "Ready" && conditionType == "Ready"
+func printErrors(errors []string) {
+	for _, error := range errors {
+		fmt.Println(error)
+	}
 }
 
 func cleanString(s *string) {
