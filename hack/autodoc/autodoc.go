@@ -55,7 +55,7 @@ func main() {
 	if len(errors) > 0 {
 		printErrors(errors)
 		fmt.Println("Below can be found auto-generated table which contain new changes:")
-		fmt.Println(renderTable(reasonsMetadata))
+		fmt.Println(buildMdTable(reasonsMetadata))
 		os.Exit(errorExitCode)
 	}
 
@@ -180,20 +180,20 @@ func compareContent(currentTableStructured []reasonMetadata, newTableStructured 
 			if newRow.conditionReason == currentRow.conditionReason {
 				found = true
 
-				if err := checkIfValuesAreSynced(currentRow.remark, newRow.remark, newRow.conditionReason); err != nil {
-					errors = append(errors, err)
+				if validationMessage := checkIfValuesAreSynced(currentRow.remark, newRow.remark, newRow.conditionReason); validationMessage != "" {
+					errors = append(errors, validationMessage)
 				}
 
-				if err := checkIfValuesAreSynced(strconv.FormatBool(currentRow.conditionStatus), strconv.FormatBool(newRow.conditionStatus), newRow.conditionReason); err != nil {
-					errors = append(errors, err)
+				if validationMessage := checkIfValuesAreSynced(strconv.FormatBool(currentRow.conditionStatus), strconv.FormatBool(newRow.conditionStatus), newRow.conditionReason); validationMessage != "" {
+					errors = append(errors, validationMessage)
 				}
 
-				if err := checkIfValuesAreSynced(currentRow.crState, newRow.crState, newRow.conditionReason); err != nil {
-					errors = append(errors, err)
+				if validationMessage := checkIfValuesAreSynced(currentRow.crState, newRow.crState, newRow.conditionReason); validationMessage != "" {
+					errors = append(errors, validationMessage)
 				}
 
-				if err := checkIfValuesAreSynced(currentRow.conditionType, newRow.conditionType, newRow.conditionReason); err != nil {
-					errors = append(errors, err)
+				if validationMessage := checkIfValuesAreSynced(currentRow.conditionType, newRow.conditionType, newRow.conditionReason); validationMessage != "" {
+					errors = append(errors, validationMessage)
 				}
 
 				break
@@ -207,7 +207,7 @@ func compareContent(currentTableStructured []reasonMetadata, newTableStructured 
 	return errors
 }
 
-func renderTable(rows []reasonMetadata) string {
+func buildMdTable(content []reasonMetadata) string {
 	renderMdElement := func(length int, content string, spaceFiller string) string {
 		length = length - len(content)
 		element := ""
@@ -218,15 +218,15 @@ func renderTable(rows []reasonMetadata) string {
 		return element
 	}
 
-	sort.Slice(rows, func(i, j int) bool {
-		if rows[i].groupOrder != rows[j].groupOrder {
-			return rows[i].groupOrder < rows[j].groupOrder
+	sort.Slice(content, func(i, j int) bool {
+		if content[i].groupOrder != content[j].groupOrder {
+			return content[i].groupOrder < content[j].groupOrder
 		}
-		return rows[i].conditionReason < rows[j].conditionReason
+		return content[i].conditionReason < content[j].conditionReason
 	})
 
 	longestConditionReasons := 0
-	for _, row := range rows {
+	for _, row := range content {
 		l := len(row.conditionReason)
 		if l > longestConditionReasons {
 			longestConditionReasons = l
@@ -234,7 +234,7 @@ func renderTable(rows []reasonMetadata) string {
 	}
 
 	longestRemark := 0
-	for _, row := range rows {
+	for _, row := range content {
 		l := len(row.remark)
 		if l > longestRemark {
 			longestRemark = l
@@ -260,7 +260,7 @@ func renderTable(rows []reasonMetadata) string {
 		renderMdElement(longestRemark, "", "-"))
 
 	lineNumber := 1
-	for _, row := range rows {
+	for _, row := range content {
 		mdTable += fmt.Sprintf("| %s | %s | %s | %s | %s | %s | \n",
 			renderMdElement(defaultMdElementSize, strconv.Itoa(lineNumber), " "),
 			renderMdElement(defaultMdElementSize, row.crState, " "),
