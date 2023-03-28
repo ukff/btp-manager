@@ -40,6 +40,7 @@ const (
 )
 
 // gophers_reasons_section_end
+
 type TypeAndStatus struct {
 	Status metav1.ConditionStatus
 	Type   string
@@ -79,10 +80,10 @@ var Reasons = map[Reason]TypeAndStatus{
 	DeletionOfOrphanedResourcesFailed:     NotReady, //Error;Deletion of orphaned resources failed
 	StoringChartDetailsFailed:             NotReady, //Error;Failure of storing chart details
 	GettingConfigMapFailed:                NotReady, //Error;Getting Config Map failed
-	CreatingObjectsFromManifestsFailed:    NotReady, //NA;NA;NA
-	PreparingModuleResourcesFailed:        NotReady, //NAnana
-	ProvisioningFailed:                    NotReady, //NA.NA
-	UpdateFailed:                          NotReady,
+	CreatingObjectsFromManifestsFailed:    NotReady, //NA;NA
+	PreparingModuleResourcesFailed:        NotReady, //NA;NA
+	ProvisioningFailed:                    NotReady, //NA;NA
+	UpdateFailed:                          NotReady, //na;na
 	ServiceInstancesAndBindingsNotCleaned: NotReady, //Deleting;NA
 	ReadyType:                             NotReady, //NA;NA
 }

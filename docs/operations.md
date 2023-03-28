@@ -102,7 +102,7 @@ The state of BTP Operator CR is represented by [**Status**](https://github.com/k
 and Conditions.
 Only one Condition of type `Ready` is used.
 
-// gophers_table_start
+[//]: <> (table_start)
 | No.                  | CR state             | Condition type       | Condition status     | Condition reason                                | Remark                                                                                 |
 | -------------------- | -------------------- | -------------------- | -------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
 | 1                    | Ready                | Ready                | true                 | ReconcileSucceeded                              | Remarks                                                                                |
@@ -126,8 +126,8 @@ Only one Condition of type `Ready` is used.
 | 19                   | Error                | Ready                | false                | OlderCRExists                                   | This CR is not the oldest one so does not represent the module status                  |
 | 20                   | Error                | Ready                | false                | PreparingInstallInfoFailed                      | Error while preparing InstallInfo                                                      |
 | 21                   | Error                | Ready                | false                | ResourceRemovalFailed                           | Some resources can still be present due to errors while deprovisioning                 |
-| 22                   | Error                | Ready                | false                | StoringChartDetailsFailed                       | Failure of storing chart details                                                       |  
-// gophers_table_end
+| 22                   | Error                | Ready                | false                | StoringChartDetailsFailed                       | Failure of storing chart details                                                       |
+[//]: <> (table_end)
 
 ## Updating
 
