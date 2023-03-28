@@ -26,12 +26,10 @@ jobs:
       with:
         go-version: 1.19
 
-    - name: Auto validate documentation
-      run: |
-        make test-docs
-
     - name: Unit tests
       run: |
         make test
 
-
+    - name: Auto validate documentation
+      run: |
+        make test-docs
