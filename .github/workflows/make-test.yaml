@@ -27,8 +27,8 @@ jobs:
         go-version: 1.19
 
     - name: Auto validate documentation
-      run: | 
-        go run hack/autodoc/autodoc.go
+      run: |
+        make test-docs
 
     - name: Unit tests
       run: |
