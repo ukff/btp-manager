@@ -37,6 +37,7 @@ func main() {
 	}
 
 	constReasons := getConstReasons(dataChunks[0])
+
 	errors, reasonsMetadata := getAndValidateReasonsMetadata(dataChunks[1])
 	if len(errors) > 0 {
 		printErrors(errors)
@@ -108,7 +109,6 @@ func getAndValidateReasonsMetadata(input string) ([]string, []reasonMetadata) {
 }
 
 func checkIfConstsAndMetadataAreInSync(constReasons []string, reasonsMetadata []reasonMetadata) []string {
-	errors := make([]string, 0)
 	checkIfConstReasonHaveMetadata := func(constReason string) bool {
 		for _, reasonMetadata := range reasonsMetadata {
 			if reasonMetadata.conditionReason == constReason {
@@ -117,6 +117,7 @@ func checkIfConstsAndMetadataAreInSync(constReasons []string, reasonsMetadata []
 		}
 		return false
 	}
+	errors := make([]string, 0)
 
 	for _, constReason := range constReasons {
 		if !checkIfConstReasonHaveMetadata(constReason) {
@@ -165,13 +166,13 @@ func mdTableToStruct(tableMd string) []reasonMetadata {
 }
 
 func compareContent(currentTableStructured []reasonMetadata, newTableStructured []reasonMetadata) []string {
-	errors := make([]string, 0)
 	checkIfValuesAreSynced := func(new, old, reason string) string {
 		if new != old {
 			return fmt.Sprintf("Docs are not synced with Go code, difference detected in reason (%s), current value in docs is (%s) but newer in Go code is (%s)", new, old, reason)
 		}
 		return ""
 	}
+	errors := make([]string, 0)
 
 	for _, newRow := range newTableStructured {
 		foundReasonInDoc := false
