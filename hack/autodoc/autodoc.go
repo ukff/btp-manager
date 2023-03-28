@@ -90,6 +90,9 @@ func getAndValidateReasonsMetadata(input string) ([]string, []tableRow) {
 	allTableRows := make([]tableRow, 0)
 	errors := make([]string, 0)
 	for _, dataLine := range reasonMetadata {
+		if dataLine == "" {
+			continue
+		}
 		err, lineStructured := tryConvertGoLineToStruct(dataLine)
 		if err != nil {
 			errors = append(errors, err.Error())
@@ -257,17 +260,17 @@ func tryConvertGoLineToStruct(line string) (error, *tableRow) {
 	line = strings.Replace(line, "\n", "", -1)
 	parts := strings.Split(line, "//")
 	if len(parts) != 2 {
-		return fmt.Errorf("validation failed! -> in line (%s) there is no comment section (//) included, comment section should have following format (//CRState;Remark)", line), nil
+		return fmt.Errorf("in line (%s) there is no comment section (//) included, comment section should have following format (//CRState;Remark)", line), nil
 	}
 
 	words := strings.Fields(parts[0])
 	if len(words) != 2 {
-		return fmt.Errorf("validation failed! -> line (%s) is bad structured, it should have following format (Reason: TypeAndStatus, //CRState;Remark", line), nil
+		return fmt.Errorf("line (%s) is bad structured, it should have following format (Reason: TypeAndStatus, //CRState;Remark", line), nil
 	}
 
 	comments := strings.Split(parts[1], ";")
 	if len(comments) != 2 {
-		return fmt.Errorf("validation failed! -> comment in line (%s) is bad structured, it should have following format (//CRState;Remark)", line), nil
+		return fmt.Errorf("comment in line (%s) is bad structured, it should have following format (//CRState;Remark)", line), nil
 	}
 
 	reason := words[0]
@@ -315,7 +318,7 @@ func detectGroupOrder(state string) int {
 
 func printErrors(errors []string) {
 	for _, error := range errors {
-		fmt.Println(error)
+		fmt.Println(fmt.Sprintf("validation failed! -> %s", error))
 	}
 }
 

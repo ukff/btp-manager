@@ -79,10 +79,10 @@ var Reasons = map[Reason]TypeAndStatus{
 	DeletionOfOrphanedResourcesFailed:     NotReady, //Error;Deletion of orphaned resources failed
 	StoringChartDetailsFailed:             NotReady, //Error;Failure of storing chart details
 	GettingConfigMapFailed:                NotReady, //Error;Getting Config Map failed
-	CreatingObjectsFromManifestsFailed:    NotReady, //NA;NA
-	PreparingModuleResourcesFailed:        NotReady, //NA;NA
-	ProvisioningFailed:                    NotReady, //NA;NA
-	UpdateFailed:                          NotReady, //NA;NA
+	CreatingObjectsFromManifestsFailed:    NotReady, //NA;NA;NA
+	PreparingModuleResourcesFailed:        NotReady, //NAnana
+	ProvisioningFailed:                    NotReady, //NA.NA
+	UpdateFailed:                          NotReady,
 	ServiceInstancesAndBindingsNotCleaned: NotReady, //Deleting;NA
 	ReadyType:                             NotReady, //NA;NA
 }
