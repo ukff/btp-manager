@@ -69,7 +69,7 @@ func extractData() string {
 	cmd.Stdout = &cmdOut
 	cmd.Stderr = &cmdErr
 	if err := cmd.Run(); err != nil {
-		fmt.Errorf(cmdErr.String())
+		fmt.Println(cmdErr.String())
 		os.Exit(errorExitCode)
 	}
 	return cmdOut.String()
