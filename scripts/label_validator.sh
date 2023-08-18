@@ -45,11 +45,11 @@ function runOnRelease() {
       continue
     fi 
 
+    echo "for commit $commit found PR $PR_ID"
+
     if [[ " ${notValidPrs[*]} " =~ " ${pr_id} " ]]; then
        continue
     fi
-
-    echo "for commit $commit found PR $PR_ID"
 
     pr_labels=$(curl -sL \
                     -H "Accept: application/vnd.github+json" \
