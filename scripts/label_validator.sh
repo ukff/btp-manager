@@ -13,16 +13,27 @@ GITHUB_ORG="kyma-project"
 
 # Event which trigger execution of script. Can be RELEASE or PR
 TRIGGER_EVENT=$1 
-PR_ID=$2
+PR_ID=${2:-NA}
 
 function runOnRelease() {
   latest=$(curl -H "X-GitHub-Api-Version: 2022-11-28" \
                 -sS "https://api.github.com/repos/$GITHUB_ORG/btp-manager/releases/latest" | 
                 jq -r '.tag_name')
+  if [[ -z $latest ]]; then 
+    echo 'not found latest release, nothing to compare'
+    exit 1
+  fi 
+
+  echo "latest release found: $latest"
 
   notValidPrs=()
   while read -r commit; do
-
+    if [[ -z $commit ]]; then 
+      continue
+    fi
+    
+    echo "checking commit: $commit"
+    
     pr_id=$(curl -L \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -34,14 +45,27 @@ function runOnRelease() {
       continue
     fi 
 
+    if [[ " ${notValidPrs[*]} " =~ " ${pr_id} " ]]; then
+       continue
+    fi
+
+    echo "for commit $commit found PR $PR_ID"
+
     pr_labels=$(curl -sL \
                     -H "Accept: application/vnd.github+json" \
                     -H "X-GitHub-Api-Version: 2022-11-28" \
                     https://api.github.com/repos/$GITHUB_ORG/btp-manager/issues/${pr_id} | 
-                    jq -r '.labels[] | objects | .name')
+                    jq -r 'if (.labels | length) > 0 then .labels[] | objects | .name else empty end')
+    
+    if [[ -z $pr_labels ]]; then 
+      echo "PR $pr_id dosent have any label"
+      notValidPrs+=("$pr_id")
+      continue
+    fi 
 
     kind_labels=$(grep -o kind <<< ${pr_labels[*]} | wc -l)
     if [[ $kind_labels -ne 1 ]]; then 
+      echo "PR $pr_id dosent have any /kind label"
       notValidPrs+=("$pr_id")
     fi
     
@@ -49,7 +73,10 @@ function runOnRelease() {
 
   if [ ${#notValidPrs[@]} -gt 0 ]; then
       echo "following PRs do not have any kind label"
-      echo "${notValidPrs[@]}"
+      for pr in "${notValidPrs[@]}"
+      do
+        echo "https://github.com/$GITHUB_ORG/btp-manager/pull/$pr"
+      done
       exit 1
   fi
 
@@ -58,6 +85,11 @@ function runOnRelease() {
 } 
 
 function runOnPr() {
+  if [[ $PR_ID == "NA" ]]; then
+    echo "PR ID not given"
+    exit 1
+  fi
+
   supported_labels=()
 
   help_message="**Add one of following labels** <br/><br/>"
