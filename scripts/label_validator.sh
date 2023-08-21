@@ -126,7 +126,6 @@ function runOnPr() {
                 -d "$payload")
     if [[ "$http_code" != "201" ]]; then
       echo "Unable to create comment with help text. $http_code"
-      exit 1
     fi
   fi
 
