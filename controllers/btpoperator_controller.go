@@ -95,7 +95,7 @@ const (
 	forceDeleteLabelKey                = "force-delete"
 )
 
-// /A
+// /Aa
 const (
 	btpOperatorGroup           = "services.cloud.sap.com"
 	btpOperatorApiVer          = "v1"
