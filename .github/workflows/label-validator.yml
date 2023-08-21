@@ -4,7 +4,7 @@ on:
     types: ["opened", "reopened", "edited", "closed", "labeled", "unlabeled"]
     branches: [ "main" ]
 permissions:
-  pull-requests: write
+  issues: write
 jobs:
   validate-labels:
     name: Validate labels
