@@ -3,13 +3,13 @@ on:
   pull_request:
     types: ["opened", "reopened", "edited", "closed", "labeled", "unlabeled"]
     branches: [ "main" ]
-permissions:
-  issues: write
 jobs:
   validate-labels:
     name: Validate labels
     runs-on: ubuntu-latest
-
+    permissions:
+      issues: write
+      pull-requests: write 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
