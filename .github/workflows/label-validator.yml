@@ -1,10 +1,10 @@
 name: Label validator
-
 on:
   pull_request:
     types: ["opened", "reopened", "edited", "closed", "labeled", "unlabeled"]
     branches: [ "main" ]
-
+permissions:
+  pull-requests: write
 jobs:
   validate-labels:
     name: Validate labels
