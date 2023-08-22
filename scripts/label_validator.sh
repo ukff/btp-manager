@@ -16,7 +16,8 @@ TRIGGER_EVENT=$1
 PR_ID=${2:-NA}
 
 function runOnRelease() {
-  latest=$(curl -H "X-GitHub-Api-Version: 2022-11-28" \
+  latest=$(curl -L \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
                 -sS "https://api.github.com/repos/$GITHUB_ORG/btp-manager/releases/latest" | 
                 jq -r '.tag_name')
   if [[ -z $latest ]]; then 
@@ -27,6 +28,9 @@ function runOnRelease() {
   echo "latest release found: $latest"
 
   supported_labels=$(yq eval '.changelog.categories.[].labels' ./.github/release.yml | grep "\- kind"| sed -e 's/- //g' | cut -d "#" -f 1)
+  supported_labels=$(echo "${supported_labels[*]}")
+
+  echo "$supported_labels"
   notValidPrs=()
   while read -r commit; do
     if [[ -z $commit ]]; then 
@@ -35,7 +39,7 @@ function runOnRelease() {
     
     echo "checking commit: $commit"
     
-    pr_id=$(curl -L \
+    pr_id=$(curl -sL \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "https://api.github.com/search/issues?q=$commit+repo:$GITHUB_ORG/btp-manager+type:pr" |
@@ -46,7 +50,7 @@ function runOnRelease() {
       continue
     fi 
 
-    echo "for commit $commit found PR $PR_ID"
+    echo "for commit $commit found PR $pr_id"
 
     if [[ " ${notValidPrs[*]} " =~ " ${pr_id} " ]]; then
        continue
@@ -65,15 +69,19 @@ function runOnRelease() {
     fi 
 
     count_of_required_labels=$(grep -o -w -F -c "${supported_labels}" <<< "$present_labels")
-    if [[ $count_of_required_labels -ne 1 ]]; then 
+    if [[ $count_of_required_labels -eq 0 ]]; then 
       echo "PR $pr_id dosent have any /kind label"
+      notValidPrs+=("$pr_id")
+    fi
+    if [[ $count_of_required_labels -gt 1 ]]; then 
+      echo "PR $pr_id have $count_of_required_labels /kind labels"
       notValidPrs+=("$pr_id")
     fi
     
   done <<< "$(git log "$latest"..HEAD --pretty=tformat:"%h")"
 
   if [ ${#notValidPrs[@]} -gt 0 ]; then
-      echo "following PRs do not have any kind label"
+      echo "following PRs do not have correct number of /kind labels"
       for pr in "${notValidPrs[@]}"
       do
         echo "https://github.com/$GITHUB_ORG/btp-manager/pull/$pr"
