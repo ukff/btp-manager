@@ -16,7 +16,8 @@ TRIGGER_EVENT=$1
 PR_ID=${2:-NA}
 
 function runOnRelease() {
-  latest=$(curl -H "X-GitHub-Api-Version: 2022-11-28" \
+  latest=$(curl -L \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
                 -sS "https://api.github.com/repos/$GITHUB_ORG/btp-manager/releases/latest" | 
                 jq -r '.tag_name')
   if [[ -z $latest ]]; then 
@@ -27,6 +28,7 @@ function runOnRelease() {
   echo "latest release found: $latest"
 
   supported_labels=$(yq eval '.changelog.categories.[].labels' ./.github/release.yml | grep "\- kind"| sed -e 's/- //g' | cut -d "#" -f 1)
+  echo "$supported_labels"
   notValidPrs=()
   while read -r commit; do
     if [[ -z $commit ]]; then 
@@ -35,7 +37,7 @@ function runOnRelease() {
     
     echo "checking commit: $commit"
     
-    pr_id=$(curl -L \
+    pr_id=$(curl -sL \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "https://api.github.com/search/issues?q=$commit+repo:$GITHUB_ORG/btp-manager+type:pr" |
@@ -46,7 +48,7 @@ function runOnRelease() {
       continue
     fi 
 
-    echo "for commit $commit found PR $PR_ID"
+    echo "for commit $commit found PR $pr_id"
 
     if [[ " ${notValidPrs[*]} " =~ " ${pr_id} " ]]; then
        continue
@@ -63,6 +65,11 @@ function runOnRelease() {
       notValidPrs+=("$pr_id")
       continue
     fi 
+
+    echo "Present labels"
+    echo "$present_labels"
+    echo "Supported labels"
+    echo "$supported_labels"
 
     count_of_required_labels=$(grep -o -w -F -c "${supported_labels}" <<< "$present_labels")
     if [[ $count_of_required_labels -ne 1 ]]; then 
