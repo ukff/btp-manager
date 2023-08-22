@@ -73,6 +73,10 @@ function runOnRelease() {
       echo "PR $pr_id dosent have any /kind label"
       notValidPrs+=("$pr_id")
     fi
+    if [[ $count_of_required_labels -gt 1 ]]; then 
+      echo "PR $pr_id have $count_of_required_labels /kind labels"
+      notValidPrs+=("$pr_id")
+    fi
     
   done <<< "$(git log "$latest"..HEAD --pretty=tformat:"%h")"
 
