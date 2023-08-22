@@ -28,6 +28,8 @@ function runOnRelease() {
   echo "latest release found: $latest"
 
   supported_labels=$(yq eval '.changelog.categories.[].labels' ./.github/release.yml | grep "\- kind"| sed -e 's/- //g' | cut -d "#" -f 1)
+  supported_labels=$(echo "${supported_labels[*]}")
+
   echo "$supported_labels"
   notValidPrs=()
   while read -r commit; do
@@ -65,11 +67,6 @@ function runOnRelease() {
       notValidPrs+=("$pr_id")
       continue
     fi 
-
-    echo "Present labels"
-    echo "$present_labels"
-    echo "Supported labels"
-    echo "$supported_labels"
 
     count_of_required_labels=$(grep -o -w -F -c "${supported_labels}" <<< "$present_labels")
     if [[ $count_of_required_labels -ne 1 ]]; then 
