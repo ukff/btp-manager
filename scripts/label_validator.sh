@@ -81,7 +81,7 @@ function runOnRelease() {
   done <<< "$(git log "$latest"..HEAD --pretty=tformat:"%h")"
 
   if [ ${#notValidPrs[@]} -gt 0 ]; then
-      echo "following PRs do not have any kind label"
+      echo "following PRs do not have correct number of /kind labels"
       for pr in "${notValidPrs[@]}"
       do
         echo "https://github.com/$GITHUB_ORG/btp-manager/pull/$pr"
