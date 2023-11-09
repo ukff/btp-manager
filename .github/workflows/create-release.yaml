@@ -71,7 +71,7 @@ jobs:
 
       - name: Update sec-scanners-config.yaml
         if: ${{ inputs.sec-scanners-config }}
-        run: scripts/create_scan_config.sh ${{ inputs.name }} "sec-scanners-config.yaml"
+        run: scripts/create_scan_config.sh ${{env.IMAGE_REPO}}:${{ inputs.name }} "sec-scanners-config.yaml" ${{ inputs.name }}
 
       - name: Create PR if anything changed
         if: ${{ inputs.sec-scanners-config }}
@@ -102,9 +102,23 @@ jobs:
             echo "Step skipped"
           fi
 
+      - name: Save latest commit ref
+        id: pull-ref
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git checkout main
+          git pull
+          LATEST_COMMIT=$(git rev-parse HEAD)
+          echo "latest_commit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "Latest commit ref $LATEST_COMMIT"
+
+    outputs:
+      latest_commit: ${{ steps.pull-ref.outputs.latest_commit }}  
+
   wait-for-prow-jobs:
     name: Wait for prow jobs
-    needs: create-draft
+    needs: [create-draft, bump-sec-scanners-config]
     runs-on: ubuntu-latest
 
     steps:
@@ -115,6 +129,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           statusName: "post-btp-manager-module-build"
           timeoutSeconds: "300"
+          ref: ${{ needs.bump-sec-scanners-config.outputs.latest_commit}}
 
       - name: Check if post-btp-manager-module-build status is success
         if: steps.wait-for-module-build-status.outputs.state != 'success'
@@ -129,6 +144,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           statusName: "post-btp-manager-build"
           timeoutSeconds: "300"
+          ref: ${{ needs.bump-sec-scanners-config.outputs.latest_commit}}
 
       - name: Check if post-btp-manager-build status is success
         if: steps.wait-for-image-build-status.outputs.state != 'success'
@@ -152,6 +168,7 @@ jobs:
       image-repo: europe-docker.pkg.dev/kyma-project/prod/btp-manager
       module-repo: europe-docker.pkg.dev/kyma-project/prod/unsigned/component-descriptors/kyma.project.io/module/btp-operator
       credentials-mode: ${{ github.event.inputs.credentials }}
+      last-k3s-versions: ${{ vars.LAST_K3S_VERSIONS }}
 
   run-stress-tests:
     name: Stress tests
@@ -221,6 +238,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ needs.bump-sec-scanners-config.outputs.latest_commit}}
 
       - name: Create draft release
         id: create-draft
