@@ -1,6 +1,6 @@
-# GitHub Actions workflows
+# GitHub Actions Workflows
 
-## Auto update chart and resources
+## Auto Update Chart and Resources
 
 The goal of the workflow is to update the chart (`module-chart/chart`) to the newest version, render the resource templates from the newest chart, and create a PR with the changes. The workflow works on two shell scripts:
 
@@ -14,15 +14,15 @@ Both scripts are run from the workflow but can also be triggered manually from t
 
 To keep `module-chart/chart` in sync with the [upstream](https://github.com/SAP/sap-btp-service-operator), you must not apply any manual changes there.
 
-## Release workflow
+## Release Workflow
 
-See [BTP Manager release pipeline](03-10-release.md) to learn more about the release workflow.
+See [BTP Manager Release Pipeline](03-10-release.md) to learn more about the release workflow.
 
-## E2E tests workflow 
+## E2E Tests Workflow 
 
 This workflow is triggered by pull requests (PRs) on the `main` branch. It uses the DEV artifact registry, tags the binary image and OCI module image with the PR number, and calls the reusable [workflow](/.github/workflows/run-e2e-tests-reusable.yaml). 
 
-## Unit tests workflow
+## Unit Tests Workflow
 
 This workflow is triggered by PRs on the `main` branch. Then it calls the reusable [workflow](/.github/workflows/run-unit-tests-reusable.yaml).
 
@@ -34,26 +34,30 @@ This [workflow](/.github/workflows/markdown-link-check.yaml) is triggered daily 
 
 There are reusable workflows created. Anyone with access to a reusable workflow can call it from another workflow.
 
-### E2E tests
+### E2E Tests
 
 This [workflow](/.github/workflows/run-e2e-tests-reusable.yaml) runs the E2E tests on the k3s cluster. 
 You pass the following parameters from the calling workflow:
 
-| Parameter name  | Required | Description |
-| ------------- | ------------- | ------------- |
-| **image-repo**  | yes  | binary image registry reference |
-| **module-repo**  | yes  |  OCI module image registry reference |
-| **image-tag**  | yes  |  binary image tag |
-| **module-tag**  | yes  |  OCI module image tag |
-| **skip-templates**  | no  |  wait for images only, skip other artifacts |
+| Parameter name  | Required | Description                                                          |
+| ------------- | ------------- |----------------------------------------------------------------------|
+| **image-repo**  | yes  | binary image registry reference                                      |
+| **module-repo**  | yes  | OCI module image registry reference                                  |
+| **image-tag**  | yes  | binary image tag                                                     |
+| **module-tag**  | yes  | OCI module image tag                                                 |
+| **skip-templates**  | no  | wait for images only, skip other artifacts                           |
+| **last-k3s-versions**  | no  | number of most recent k3s versions to be used for tests, default = `1` |
+
 
 The workflow:
-- prepares a k3s cluster and the Docker registry
+- fetches the **last-k3s-versions** tag versions of k3s releases 
+- prepares the **last-k3s-versions** k3s clusters with the Docker registries using the list of versions from the previous step
 - waits for the artifacts to be ready in the registry
-- runs the E2E tests on the cluster
+- runs the E2E tests on the clusters
+- waits for all tests to finish
 
 
-### Unit tests
+### Unit Tests
 
 This [workflow](/.github/workflows/run-unit-tests-reusable.yaml) runs the unit tests.
 No parameters are passed from the calling workflow (callee).

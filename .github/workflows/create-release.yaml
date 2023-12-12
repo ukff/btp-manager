@@ -1,11 +1,12 @@
 name: "Create release"
+run-name: Create release ${{ inputs.name }}
 
 env:
   MODULE_REPO: europe-docker.pkg.dev/kyma-project/prod/unsigned/component-descriptors/kyma.project.io/module/btp-operator
   IMAGE_REPO: europe-docker.pkg.dev/kyma-project/prod/btp-manager
   KYMA_BTP_MANAGER_REPO: ${{ github.repository_owner }}/btp-manager
   GIT_EMAIL: team-gopher+1@sap.com
-  GIT_NAME: kyma-btp-manager-bot
+  GIT_NAME: kyma-gopher-bot
   BRANCH_NAME: sec-scanners-config-${{ inputs.name }}
 
 on:
@@ -26,6 +27,13 @@ on:
         type: boolean
         description: 'Create PR with sec-scanners-config bump'
         default: true
+      k3s-versions:
+        type: number
+        description: 'Number of last k3s versions to be used for tests'
+      dry-run:
+        type: boolean
+        description: 'Do not publish'
+        default: false
 
 jobs:
   validate-release:
@@ -50,13 +58,23 @@ jobs:
           BTP_OPERATOR_REPO: ${{ env.MODULE_REPO }}
           BTP_MANAGER_REPO: ${{ env.IMAGE_REPO }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "./scripts/check_artifacts_existence.sh ${{ inputs.name }} v${{ inputs.name }}"
+        run: "./scripts/check_artifacts_existence.sh ${{ inputs.name }} ${{ inputs.name }}"
 
-      - name: Validate Labels
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install requirements
+        run: pip install -r scripts/python/requirements.txt
+
+      - name: Validate labels
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/label_validator.sh "RELEASE"
-  
+          REPOSITORY: ${{ env.KYMA_BTP_MANAGER_REPO }}
+        run: python3 scripts/python/release_label_validator.py
+
   bump-sec-scanners-config:
     name: Bump sec-scanners-config
     needs: validate-release
@@ -64,7 +82,6 @@ jobs:
 
     steps:
       - name: Checkout code
-        if: ${{ inputs.sec-scanners-config }}
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -164,11 +181,11 @@ jobs:
     secrets: inherit
     with:
       image-tag: ${{ github.event.inputs.name }}
-      module-tag: v${{ github.event.inputs.name }}
+      module-tag: ${{ github.event.inputs.name }}
       image-repo: europe-docker.pkg.dev/kyma-project/prod/btp-manager
       module-repo: europe-docker.pkg.dev/kyma-project/prod/unsigned/component-descriptors/kyma.project.io/module/btp-operator
       credentials-mode: ${{ github.event.inputs.credentials }}
-      last-k3s-versions: ${{ vars.LAST_K3S_VERSIONS }}
+      last-k3s-versions: ${{ github.event.inputs.k3s-versions || vars.LAST_K3S_VERSIONS }}
 
   run-stress-tests:
     name: Stress tests
@@ -187,15 +204,18 @@ jobs:
           BTP_OPERATOR_REPO: ${{ env.MODULE_REPO }}
           BTP_MANAGER_REPO: ${{ env.IMAGE_REPO }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "./scripts/await_artifacts.sh ${{ inputs.name }} v${{ inputs.name }}"
+        run: "./scripts/await_artifacts.sh ${{ inputs.name }} ${{ inputs.name }}"
 
       - name: Install BTP operator
         timeout-minutes: 2
-        run: "./scripts/testing/install.sh $MODULE_REPO:v${{ inputs.name }} dummy ci"
+        run: "./scripts/testing/install.sh $MODULE_REPO:${{ inputs.name }} dummy ci"
 
       - name: BTP Manager controller resources usage
         run: "kubectl top pod -l app.kubernetes.io/component=btp-manager.kyma-project.io -n kyma-system --containers"
 
+      - name: SAP BTP Operator controller resources usage
+        run: "kubectl top pod -l app.kubernetes.io/name=sap-btp-operator -n kyma-system --containers"
+        
       - name: Run tests
         run: ./scripts/testing/./stress-mem.sh 500 30
 
@@ -204,12 +224,18 @@ jobs:
 
       - name: BTP Manager controller resources usage
         run: "kubectl top pod -l app.kubernetes.io/component=btp-manager.kyma-project.io -n kyma-system --containers"
+      
+      - name: SAP BTP Operator controller resources usage
+        run: "kubectl top pod -l app.kubernetes.io/name=sap-btp-operator -n kyma-system --containers"
 
       - name: Prepare stress data - Secrets and ConfigMaps
         run: "./scripts/testing/create-secrets-configmaps.sh 120"
 
       - name: BTP Manager controller resources usage
         run: "kubectl top pod -l app.kubernetes.io/component=btp-manager.kyma-project.io -n kyma-system --containers"
+
+      - name: SAP BTP Operator controller resources usage
+        run: "kubectl top pod -l app.kubernetes.io/name=sap-btp-operator -n kyma-system --containers"
 
       - name: Check BTP manager restarts
         run: |
@@ -224,7 +250,7 @@ jobs:
     uses: "./.github/workflows/run-e2e-upgrade-tests-reusable.yaml"
     with:
       image-tag: ${{ github.event.inputs.name }}
-      module-tag: v${{ github.event.inputs.name }}
+      module-tag: ${{ github.event.inputs.name }}
       image-repo: europe-docker.pkg.dev/kyma-project/prod/btp-manager
       module-repo: europe-docker.pkg.dev/kyma-project/prod/unsigned/component-descriptors/kyma.project.io/module/btp-operator
 
@@ -259,6 +285,7 @@ jobs:
   publish-release:
     name: Publish release
     needs: [create-draft, run-unit-tests, run-e2e-tests, run-e2e-upgrade-tests, run-stress-tests]
+    if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
 
     steps:

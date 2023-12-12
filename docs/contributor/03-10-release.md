@@ -1,4 +1,4 @@
-# BTP Manager release pipeline
+# BTP Manager Release Pipeline
 
 ## Overview
 
@@ -7,9 +7,9 @@ The BTP Manager release pipeline creates proper artifacts:
  - btp-manager Docker image in the [registry](https://console.cloud.google.com/artifacts/docker/kyma-project/europe/prod/unsigned%2Fcomponent-descriptors%2Fkyma.project.io%2Fmodule%2Fbtp-operator)
  - `template.yaml`, `template_control_plane.yaml`, `btp-manager.yaml`, `btp-btp-operator-default-cr.yaml`
 
-## Run the pipeline
+## Run the Pipeline
 
-### Create a release
+### Create a Release
 
 ![Release diagram](../assets/release.svg)
 
@@ -32,11 +32,11 @@ To create a release, follow these steps:
 9. `post-btp-manager-module-build` runs the `kyma alpha create module` command, which creates a Kyma module and pushes the image to the registry. Kyma CLI is called with the `--sec-scanners-config` flag and uses a dynamically created file to configure security scanning settings in the module template. Finally, the job uploads the `template.yaml`,`template_control_plane.yaml`, `btp-manager.yaml` and `btp-operator-default-cr.yaml` files to the btp-manager release as release assets.
 10. The GitHub action asynchronously initiates stress tests jobs and E2E tests jobs upon Prow job success status. E2E upgrade tests run only with real credentials for Service Manager.
 11. The GitHub action waits for the `template.yaml` asset in the GitHub release and for images in the Docker registry.
-12. The GitHub action fetches the module image and runs E2E tests on the k3s cluster with the specified credentials. 
-13. If the unit tests, stress tests and E2E tests are completed successfully, the GitHub action publishes the release.
+12. The GitHub action fetches the module image and runs E2E tests in parallel on the k3s clusters for the most recent k3s versions and with the specified credentials. The number of the most recent k3s versions to be used is defined in the **vars.LAST_K3S_VERSIONS** GitHub variable. 
+13. If the unit tests, stress tests, and E2E tests are completed successfully, the GitHub action publishes the release.
 
 
-### Replace an existing release
+### Replace an Existing Release
 
 To regenerate an existing release, perform the following steps:
 
