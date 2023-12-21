@@ -57,7 +57,7 @@ data:
   clientsecret: $(jq --raw-output '.clientsecret | @base64' creds.json)
   sm_url: $(jq --raw-output '.sm_url | @base64' creds.json)
   tokenurl: $(jq --raw-output '.url | @base64' creds.json)
-  tokenurlsuffix: L29hdXRoL3Rva2Vu
+  tokenurlsuffix: $(echo -n '/oauth/token' | base64)
 EOF
 echo 'secret: btp-access-credentials-secret.yaml with BTP access credentials for SAP BTP Service Operator created'
 exit 0
