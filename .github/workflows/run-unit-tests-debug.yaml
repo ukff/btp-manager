@@ -24,6 +24,6 @@ jobs:
           if [ $? == 0 ]; then
               echo "(COUNT OF) OK -> $OK"
           else
-              echo "(COUNT OF) FAIL -> $FAIL"
+              echo "(COUNT OF) FAIL -> $FAIL
           fi
         done
