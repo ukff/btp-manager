@@ -3,6 +3,7 @@
 name: Run unit tests (with cron)
 
 on:
+  workflow_call:
   schedule:
     - cron: '*/3 * * * *'
 
