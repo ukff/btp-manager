@@ -1,10 +1,10 @@
 name: Run unit tests (with cron)
 
 on:
-  workflow_call:
+  workflow_dispatch:
   schedule:
-    - cron: '*/1 * * * *'
-
+    - cron: '1 * * * *'
+    
 jobs:
   build:
     runs-on: ubuntu-latest
