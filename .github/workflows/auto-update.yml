@@ -26,7 +26,6 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-   
       - name: Post to a Slack channel success
         if: ${{ always() && contains(steps.*.result, 'success') }}
         id: slack2
@@ -36,7 +35,7 @@ jobs:
           slack-message: "Slack API Test"
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}       
-  
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
