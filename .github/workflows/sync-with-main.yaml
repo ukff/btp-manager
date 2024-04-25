@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: Sync SM Integration branch with main branch
 
 on:
@@ -7,11 +8,18 @@ on:
         description: 'Trigger the workflow manually?'
         default: 'true'
         required: false
+=======
+name: Sync with main
+
+on:
+  workflow_dispatch:
+>>>>>>> fb04aff (Adjust GitHub ctions for sm-integration branch (#677))
   schedule:
     - cron: '0 0 * * *'
 jobs:
   sync:
     runs-on: ubuntu-latest
+<<<<<<< HEAD
 
     steps:
       - name: Checkout code
@@ -21,3 +29,15 @@ jobs:
         run: |
           git fetch origin main
           git merge origin/main
+=======
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Sync with main
+        run: |
+          git checkout main
+          git pull
+          git checkout sm-integration
+          git rebase main
+          git push
+>>>>>>> fb04aff (Adjust GitHub ctions for sm-integration branch (#677))
