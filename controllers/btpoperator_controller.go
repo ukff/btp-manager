@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"k8s.io/client-go/kubernetes"
 	"os"
 	"reflect"
 	"strconv"
@@ -93,6 +94,9 @@ const (
 	mutatingWebhookName                = "sap-btp-operator-mutating-webhook-configuration"
 	validatingWebhookName              = "sap-btp-operator-validating-webhook-configuration"
 	forceDeleteLabelKey                = "force-delete"
+	clusterIdKey        = "CLUSTER_ID"
+	initialClusterIdKey = "INITIAL_CLUSTER_ID"
+	clusterIdSecret     = "sap-btp-operator-clusterid"
 )
 
 const (
@@ -135,6 +139,10 @@ type InstanceBindingSerivce interface {
 	EnableSISBController()
 }
 
+type SecretWatchedData struct {
+	clusterId string
+}
+
 // BtpOperatorReconciler reconciles a BtpOperator object
 type BtpOperatorReconciler struct {
 	client.Client
@@ -144,6 +152,7 @@ type BtpOperatorReconciler struct {
 	workqueueSize          int
 	metrics                *metrics.Metrics
 	instanceBindingService InstanceBindingSerivce
+	secretWatchedData *SecretWatchedData
 }
 
 func NewBtpOperatorReconciler(client client.Client, scheme *runtime.Scheme, instanceBindingSerivice InstanceBindingSerivce, metrics *metrics.Metrics) *BtpOperatorReconciler {
@@ -509,6 +518,10 @@ func (r *BtpOperatorReconciler) reconcileResources(ctx context.Context, s *corev
 	if err = r.waitForResourcesReadiness(ctx, resourcesToApply); err != nil {
 		logger.Error(err, "while waiting for module resources readiness")
 		return fmt.Errorf("timed out while waiting for resources readiness: %w", err)
+	}
+
+	if err := r.handleSapBtpManagerChange(ctx); err != nil {
+		return fmt.Errorf("failed to handle secret changes: %w", err)
 	}
 
 	return nil
@@ -2028,4 +2041,95 @@ func (r *BtpOperatorReconciler) reconcileResourcesWithoutChangingCrState(ctx con
 	if err := r.reconcileResources(ctx, secret); err != nil {
 		logger.Error(err, "resources reconciliation failed")
 	}
+}
+
+func (r *BtpOperatorReconciler) handleSapBtpManagerChange(ctx context.Context) error {
+	sapBtpSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      SecretName,
+			Namespace: ChartNamespace,
+		},
+	}
+	err := r.Get(ctx, client.ObjectKey{}, sapBtpSecret)
+	if err != nil {
+		return fmt.Errorf("failed to get secret, %w", err)
+	}
+
+	watchedData := SecretWatchedData{
+		clusterId: string(sapBtpSecret.Data["clusterId"]),
+	}
+
+	if reflect.DeepEqual(r.secretWatchedData, &SecretWatchedData{}) {
+		r.secretWatchedData = &watchedData
+	}
+
+	if reflect.DeepEqual(watchedData, r.secretWatchedData) {
+		return nil
+	}
+
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      btpServiceOperatorConfigMap,
+			Namespace: ChartNamespace,
+		},
+	}
+	err = r.Get(context.Background(), client.ObjectKey{}, configMap)
+	if err != nil {
+		return fmt.Errorf("failed to get config map, %w", err)
+	}
+
+	if !strings.EqualFold(configMap.Data[clusterIdKey], string(sapBtpSecret.Data["clusterId"])) {
+		return fmt.Errorf("clusterId in secret and config map are the same")
+	}
+
+	clusterIdSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      clusterIdKey,
+			Namespace: ChartNamespace,
+		},
+	}
+	err = r.Client.Delete(ctx, clusterIdSecret, &client.DeleteOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to delete secret, %w", err)
+	}
+
+	err = r.restartDeployment()
+	if err != nil {
+		return fmt.Errorf("failed to restart deployment, %w", err)
+	}
+
+	err = r.Client.Get(ctx, client.ObjectKey{}, clusterIdSecret)
+	if err != nil {
+		return fmt.Errorf("failed to get secret, %w", err)
+	}
+
+	if !strings.EqualFold(string(clusterIdSecret.Data["clusterId"]), string(sapBtpSecret.Data["clusterId"])) {
+		return fmt.Errorf("clusterId in secret and config map are the same")
+	}
+
+	r.secretWatchedData = &watchedData
+	return nil
+}
+
+func (r *BtpOperatorReconciler) restartDeployment() error {
+	clients, err := kubernetes.NewForConfig(r.Config)
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client, %w", err)
+	}
+	scale, err := clients.AppsV1().Deployments(ChartNamespace).GetScale(context.TODO(), DeploymentName, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get deployment scale, %w", err)
+	}
+	oldReplicas := scale.Spec.Replicas
+	scale.Spec.Replicas = 0
+	updatedScale, err := clients.AppsV1().Deployments(ChartNamespace).UpdateScale(context.TODO(), DeploymentName, scale, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update deployment scale, %w", err)
+	}
+	updatedScale.Spec.Replicas = oldReplicas
+	_, err = clients.AppsV1().Deployments(ChartNamespace).UpdateScale(context.TODO(), DeploymentName, updatedScale, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to update deployment scale, %w", err)
+	}
+	return nil
 }
